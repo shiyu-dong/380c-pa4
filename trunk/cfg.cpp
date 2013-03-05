@@ -1,11 +1,16 @@
 #include <assert.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include "dce.h"
 
 set<int> br_target;
 bool main_next = 0;
 
+string opcode[] = {"add", "mul", "cmpeq", "sub", "div", "mod", "cmple", "cmplt", "neg"};
+
+
+//#define PRE_OPCODE_RANGE 9 //(3+5+1)
 // type 0
 // 1 reg def + 2 use (commutative)
 #define DEF_REG0_SIZE 3
@@ -41,7 +46,13 @@ string def_reg6[] = {"write", "param"};
 #define BB_END_SIZE 5
 string bb_end[] = {"br", "blbc", "blbs", "ret", "call"};
 
-
+inline int atoi(string s) {
+  stringstream ss;
+  ss << s;
+  int ret;
+  ss >> ret;
+  return ret;
+}
 
 pair<OpType, int> get_1op(string instr) {
   int pos1, pos2, pos3;
@@ -76,7 +87,7 @@ pair<OpType, int> get_1op(string instr) {
   else if (pos2 != string::npos)
     return make_pair(POINTER, 1);
 
-  return make_pair(NONE, -1);
+  return make_pair(CONSTANT, atoi(op1str) );
 }
 
 pair<OpType, int> get_2op(string instr) {
@@ -119,7 +130,7 @@ pair<OpType, int> get_2op(string instr) {
   else if (pos2 != string::npos)
     return make_pair(POINTER, 1);
 
-  return make_pair(NONE, -1);
+  return make_pair(CONSTANT, atoi(op1str) );
 }
 
 bool newfunc_reached() {
@@ -153,13 +164,14 @@ bool newfunc_reached() {
 
 // return 0 if reach the end of basic block
 // return 1 if there are instructions following
-bool Instr::populate(string temp, bool& main, set<Exp*>* base) {
+bool Instr::populate(string temp, bool& main) {
   int found;
   int opcode_count = 0;
   bool instr_follow;
 
   use.clear();
   def.clear();
+  opcode_num = -1;
 
   // get instruction
   instr = temp;
@@ -194,10 +206,6 @@ bool Instr::populate(string temp, bool& main, set<Exp*>* base) {
       else
         use.push_back(t);
 
-      Exp* texp = new Exp;
-      texp->use = use;
-      texp->opcode_num = opcode_num;
-      base->insert(texp);
       return instr_follow;
     }
     opcode_count++;
@@ -213,10 +221,6 @@ bool Instr::populate(string temp, bool& main, set<Exp*>* base) {
       opcode = def_reg1[i];
       opcode_num = opcode_count;
 
-      Exp* texp = new Exp;
-      texp->use = use;
-      texp->opcode_num = opcode_num;
-      base->insert(texp);
       return instr_follow;
     }
     opcode_count++;
@@ -231,11 +235,6 @@ bool Instr::populate(string temp, bool& main, set<Exp*>* base) {
       if (i == 0) {
         opcode = def_reg2[i];
         opcode_num = opcode_count;
-
-        Exp* texp = new Exp;
-        texp->use = use;
-        texp->opcode_num = opcode_num;
-        base->insert(texp);
       }
       return instr_follow;
     }
@@ -285,7 +284,7 @@ bool Instr::populate(string temp, bool& main, set<Exp*>* base) {
 
 // return 0 if reach the end of the function
 // return 1 if there are other bb following
-bool BasicBlock::populate(set<Exp*>* base) {
+bool BasicBlock::populate() {
   string temp;
   bool ret=1;
   main = main_next;
@@ -301,7 +300,7 @@ bool BasicBlock::populate(set<Exp*>* base) {
   while(ret && !cin.eof()) {
     getline(cin, temp);
     instr.push_back(new Instr);
-    ret = instr.back()->populate(temp, main, base);
+    ret = instr.back()->populate(temp, main);
   }
 
   // update basic block number
@@ -371,7 +370,7 @@ void Function::populate() {
   // populate each basic block
   do {
     bb.push_back(new BasicBlock);
-    ret = bb.back()->populate(&base);
+    ret = bb.back()->populate();
   } while(ret);
 
   // connect pointers
@@ -417,11 +416,6 @@ void Function::print_instr() {
     }
   }
 
-  cout<<"base: "<<endl;
-  for(set<Exp*>::iterator i=base.begin(); i!=base.end(); i++) {
-    cout<<(*i)->opcode_num<<" ";
-  }
-  cout<<endl;
   return;
 }
 
