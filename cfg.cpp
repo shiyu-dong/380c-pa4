@@ -6,11 +6,14 @@
 set<int> br_target;
 bool main_next = 0;
 
+// type 0
+// 1 reg def + 2 use (commutative)
+#define DEF_REG0_SIZE 3
+string def_reg0[] = {"add", "mul", "cmpeq"};
 // type 1
 // 1 reg def + 2 use
-#define DEF_REG1_SIZE 8
-string def_reg1[] = {"add", "sub", "mul", "div", "mod", 
-                     "cmpeq", "cmple", "cmplt"};
+#define DEF_REG1_SIZE 5
+string def_reg1[] = {"sub", "div", "mod", "cmple", "cmplt"};
 // type 2
 // 1 reg def + 1 use of the only op
 #define DEF_REG2_SIZE 2
@@ -61,6 +64,17 @@ pair<OpType, int> get_1op(string instr) {
     int reg_num = atoi(op1str.substr(pos1+1, op1str.length()-1).c_str());
     return make_pair(VAR, reg_num);
   }
+  else if (pos1 != string::npos && (pos2 != string::npos || pos3 != string::npos)) {
+    int reg_num = atoi(op1str.substr(pos1+1, op1str.length()-1).c_str());
+    return make_pair(ADDR, reg_num);
+  }
+
+  pos1 = op1str.find("GP");
+  pos2 = op1str.find("FP");
+  if (pos1 != string::npos)
+    return make_pair(POINTER, 0);
+  else if (pos2 != string::npos)
+    return make_pair(POINTER, 1);
 
   return make_pair(NONE, -1);
 }
@@ -93,6 +107,17 @@ pair<OpType, int> get_2op(string instr) {
     int reg_num = atoi(op1str.substr(pos1+1, op1str.length()-1).c_str());
     return make_pair(VAR, reg_num);
   }
+  else if (pos1 != string::npos && (pos2 != string::npos && pos3 != string::npos)) {
+    int reg_num = atoi(op1str.substr(pos1+1, op1str.length()-1).c_str());
+    return make_pair(ADDR, reg_num);
+  }
+
+  pos1 = op1str.find("GP");
+  pos2 = op1str.find("FP");
+  if (pos1 != string::npos)
+    return make_pair(POINTER, 0);
+  else if (pos2 != string::npos)
+    return make_pair(POINTER, 1);
 
   return make_pair(NONE, -1);
 }
@@ -128,9 +153,9 @@ bool newfunc_reached() {
 
 // return 0 if reach the end of basic block
 // return 1 if there are instructions following
-bool Instr::populate(string temp, bool& main) {
+bool Instr::populate(string temp, bool& main, set<Exp*>* base) {
   int found;
-  pair<OpType, int> t;
+  int opcode_count = 0;
   bool instr_follow;
 
   use.clear();
@@ -152,31 +177,76 @@ bool Instr::populate(string temp, bool& main) {
   instr_follow = (br_target.find(num+1) == br_target.end());
 
   // populate def and use
+  // type 0, 1 def + 2 use
+  for(int i=0; i<DEF_REG0_SIZE; i++) {
+    found = instr.find(def_reg0[i]);
+    if (found != std::string::npos) {
+      def.push_back(make_pair(REG, num));
+      use.push_back(get_1op(instr));
+      pair<OpType, int> t = get_2op(instr);
+
+      opcode = def_reg0[i];
+      opcode_num = opcode_count;
+      if (t.first < use.front().first)
+        use.push_front(t);
+      else if (t.first == use.front().first && t.second < use.front().second)
+        use.push_front(t);
+      else
+        use.push_back(t);
+
+      Exp* texp = new Exp;
+      texp->use = use;
+      texp->opcode_num = opcode_num;
+      base->insert(texp);
+      return instr_follow;
+    }
+    opcode_count++;
+  }
   // type 1, 1 def + 2 use
   for(int i=0; i<DEF_REG1_SIZE; i++) {
     found = instr.find(def_reg1[i]);
     if (found != std::string::npos) {
-      def.insert(make_pair(REG, num));
-      use.insert(get_1op(instr));
-      use.insert(get_2op(instr));
+      def.push_back(make_pair(REG, num));
+      use.push_back(get_1op(instr));
+      use.push_back(get_2op(instr));
+
+      opcode = def_reg1[i];
+      opcode_num = opcode_count;
+
+      Exp* texp = new Exp;
+      texp->use = use;
+      texp->opcode_num = opcode_num;
+      base->insert(texp);
       return instr_follow;
     }
+    opcode_count++;
   }
   // type 2, 1 def + 1 use
   for(int i=0; i<DEF_REG2_SIZE; i++) {
     found = instr.find(def_reg2[i]);
     if (found != std::string::npos) {
-      def.insert(make_pair(REG, num));
-      use.insert(get_2op(instr));
+      def.push_back(make_pair(REG, num));
+      use.push_back(get_2op(instr));
+
+      if (i == 0) {
+        opcode = def_reg2[i];
+        opcode_num = opcode_count;
+
+        Exp* texp = new Exp;
+        texp->use = use;
+        texp->opcode_num = opcode_num;
+        base->insert(texp);
+      }
       return instr_follow;
     }
+    opcode_count++;
   }
   // type 3, 0 def + 2 use
   for(int i=0; i<DEF_REG3_SIZE; i++) {
     found = instr.find(def_reg3[i]);
     if (found != std::string::npos) {
-      use.insert(get_1op(instr));
-      use.insert(get_2op(instr));
+      use.push_back(get_1op(instr));
+      use.push_back(get_2op(instr));
       return instr_follow;
     }
   }
@@ -184,8 +254,8 @@ bool Instr::populate(string temp, bool& main) {
   for(int i=0; i<DEF_REG5_SIZE; i++) {
     found = instr.find(def_reg5[i]);
     if (found != std::string::npos) {
-      use.insert(get_1op(instr));
-      def.insert(get_2op(instr));
+      use.push_back(get_1op(instr));
+      def.push_back(get_2op(instr));
       return instr_follow;
     }
   }
@@ -193,7 +263,7 @@ bool Instr::populate(string temp, bool& main) {
   for(int i=0; i<DEF_REG6_SIZE; i++) {
     found = instr.find(def_reg6[i]);
     if (found != std::string::npos) {
-      use.insert(get_2op(instr));
+      use.push_back(get_2op(instr));
       return instr_follow;
     }
   }
@@ -201,7 +271,7 @@ bool Instr::populate(string temp, bool& main) {
   for(int i=0; i<DEF_REG4_SIZE; i++) {
     found = instr.find(def_reg4[i]);
     if (found != std::string::npos) {
-      use.insert(get_1op(instr));
+      use.push_back(get_1op(instr));
     }
   }
   // check end of bb
@@ -215,7 +285,7 @@ bool Instr::populate(string temp, bool& main) {
 
 // return 0 if reach the end of the function
 // return 1 if there are other bb following
-bool BasicBlock::populate() {
+bool BasicBlock::populate(set<Exp*>* base) {
   string temp;
   bool ret=1;
   main = main_next;
@@ -231,7 +301,7 @@ bool BasicBlock::populate() {
   while(ret && !cin.eof()) {
     getline(cin, temp);
     instr.push_back(new Instr);
-    ret = instr.back()->populate(temp, main);
+    ret = instr.back()->populate(temp, main, base);
   }
 
   // update basic block number
@@ -301,7 +371,7 @@ void Function::populate() {
   // populate each basic block
   do {
     bb.push_back(new BasicBlock);
-    ret = bb.back()->populate();
+    ret = bb.back()->populate(&base);
   } while(ret);
 
   // connect pointers
@@ -346,6 +416,12 @@ void Function::print_instr() {
       cout<<(*j)->instr<<"\n";
     }
   }
+
+  cout<<"base: "<<endl;
+  for(set<Exp*>::iterator i=base.begin(); i!=base.end(); i++) {
+    cout<<(*i)->opcode_num<<" ";
+  }
+  cout<<endl;
   return;
 }
 

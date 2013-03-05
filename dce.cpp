@@ -9,7 +9,7 @@ using namespace std;
 inline void BasicBlock::add_instr_def(list<Instr*>::iterator it) {
   set<int>::iterator j;
 
-  for(set<pair<OpType, int> >::iterator i=(*it)->def.begin(); i != (*it)->def.end(); i++) {
+  for(list<pair<OpType, int> >::iterator i=(*it)->def.begin(); i != (*it)->def.end(); i++) {
     if (i->first == VAR) {
       def.insert(i->second);
       j = use.find(i->second);
@@ -22,7 +22,7 @@ inline void BasicBlock::add_instr_def(list<Instr*>::iterator it) {
 
 inline void BasicBlock::add_instr_use(list<Instr*>::iterator it) {
 
-  for(set<pair<OpType, int> >::iterator i=(*it)->use.begin(); i != (*it)->use.end(); i++) {
+  for(list<pair<OpType, int> >::iterator i=(*it)->use.begin(); i != (*it)->use.end(); i++) {
     if (i->first == VAR)
       use.insert(i->second);
   }
@@ -144,7 +144,7 @@ bool BasicBlock::dce(Function* f, set<int>& dead_var_offset) {
 
     // check if it uses any C variables not in live_list
     if ((*it)->use.size() != 0) {
-      set<pair<OpType, int> >::iterator jt;
+      list<pair<OpType, int> >::iterator jt;
       for(jt = (*it)->use.begin(); jt != (*it)->use.end(); jt++) {
         if (jt->first == VAR) {
           live.insert(jt->second);
@@ -165,7 +165,7 @@ bool BasicBlock::dce(Function* f, set<int>& dead_var_offset) {
         }
 
         // copy all it's virtual register into dead
-        for(set<pair<OpType, int> >::iterator jt = (*it)->use.begin();
+        for(list<pair<OpType, int> >::iterator jt = (*it)->use.begin();
             jt != (*it)->use.end(); jt++) {
           if (jt->first == REG) {
             dead.insert(jt->second);

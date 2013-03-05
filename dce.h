@@ -9,7 +9,8 @@
 #include <utility>
 using namespace std;
 
-enum OpType {REG, VAR, NONE};
+enum OpType {REG, VAR, ADDR, POINTER, NONE};
+// for POINTER OpType, register number 0 stands for GP, 1 for FP
 extern set<int> br_target;
 struct Function;
 
@@ -20,14 +21,21 @@ inline int instr_num(string instr) {
   return atoi(instr.substr(pos1, len).c_str());
 }
 
+struct Exp {
+  list<pair<OpType, int> > use;
+  int opcode_num;
+};
 
 struct Instr {
   int num;
-  set<pair<OpType, int> > use;
-  set<pair<OpType, int> > def;
+  list<pair<OpType, int> > use;
+  list<pair<OpType, int> > def;
+
+  int opcode_num;
+  string opcode; 
   string instr;
 
-  bool populate(string, bool&);
+  bool populate(string, bool&, set<Exp*>*);
 };
 
 struct BasicBlock {
@@ -46,7 +54,7 @@ struct BasicBlock {
   bool main;
 
   // CFG
-  bool populate();
+  bool populate(set<Exp*>*);
 
   // DCE
   void compute_defuse();
@@ -57,6 +65,7 @@ struct BasicBlock {
 
 struct Function {
   vector<BasicBlock*> bb;
+  set<Exp*> base;
   set<int> dead_var_offset;
 
   BasicBlock* get_bb(int);
