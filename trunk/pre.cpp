@@ -39,6 +39,17 @@ void printSet(set<pair<OpType, int> > s) {
   cout<<endl;
 }
 
+bool SetEqual(set<Exp>* s1, set<Exp>* s2) {
+  if(s1->size() != s2->size())
+    return 0;
+  for(set<Exp>::iterator i = s1->begin();
+      i != s1->end(); i++) {
+    if (s2->find(*i) == s2->end())
+      return 0;
+  }
+  return 1;
+}
+
 void BasicBlock::compute_UEE() {
   set<Exp> exps;
   for(list<Instr*>::iterator i = instr.begin();
@@ -86,12 +97,11 @@ void BasicBlock::compute_UEE() {
   }
 
   // debug
-  //cout<<"BB: "<<num<<endl;
   //cout<<"KILL_t: \n";
   //printSet(KILL_t);
-  //cout<<"UEE: \n";
-  //printSet(UEE);
-  //cout<<endl;
+  cout<<"UEE BB: "<<num<<endl;
+  printSet(UEE);
+  cout<<endl;
 }
 
 void Function::compute_UEE() {
@@ -131,9 +141,8 @@ void BasicBlock::compute_DEE() {
   }
 
   // debug
-  //cout<<"BB: "<<num<<endl;
-  //cout<<"DEE: \n";
-  //printSet(DEE);
+  cout<<"DEE BB: "<<num<<endl;
+  printSet(DEE);
 }
 
 void Function::compute_DEE() {
@@ -157,8 +166,7 @@ void BasicBlock::compute_KILL(set<Exp>* base) {
   }
 
   // debug
-  cout<<"BB: "<<num<<endl;
-  cout<<"KILL: \n";
+  cout<<"KILL BB: "<<num<<endl;
   printSet(KILL);
 }
 
@@ -179,6 +187,92 @@ void Function::compute_base() {
   }
 
   // debug
-  cout<<"base: \n";
-  printSet(base);
+  //cout<<"base: \n";
+  //printSet(base);
 }
+
+void Function::PRE_init() {
+  for(int i=0; i<bb.size(); i++) {
+    // AVAIL
+    bb[i]->AVAIL = base;
+  }
+}
+
+void Function::compute_AVAIL() {
+  bool stable = 0;
+  while(!stable) {
+    stable = 1;
+    // starting from a node that is not "start"
+    for(int i=0; i<bb.size(); i++) {
+      set<Exp> temp;
+
+      // AVAIL_IN
+      if (bb[i]->parent_p.size() == 0)
+        temp.clear();
+
+      else {
+        set<BasicBlock*>::iterator j = bb[i]->parent_p.begin();
+        temp = (*j)->AVAIL;
+        j++;
+        while(j != bb[i]->parent_p.end()) {
+          temp = Intersect(& (*j)->AVAIL, & temp);
+          j++;
+        }
+      }
+
+      // Intersect (Not(Kill), temp)
+      set<Exp> temp2 = Not(&bb[i]->KILL);
+      temp = Intersect(&temp, &temp2);
+
+      // Or (temp, DEE)
+      temp = Union(&temp, &bb[i]->DEE);
+
+      // check if AVAIL stables
+      if (! SetEqual(& temp, & bb[i]->AVAIL)) {
+        bb[i]->AVAIL = temp;
+        stable = 0;
+      }
+    }
+  }
+
+  // debug
+  //cout<<"AVAIL func: "<<bb[0]->num<<"\n";
+  //for(int i=0; i<bb.size(); i++) {
+  //  cout<<"BB num: "<<bb[i]->num<<endl;
+  //  printSet(bb[i]->AVAIL);
+  //}
+}
+
+
+set<Exp> Function::Intersect(const set<Exp>* s1, const set<Exp>* s2) {
+  set<Exp> s3;
+  for(set<Exp>::iterator i = s1->begin(); i != s1->end(); i++) {
+    if (s2->find(*i) != s2->end()) {
+      s3.insert(*i);
+    }
+  }
+
+  return s3;
+}
+
+set<Exp> Function::Union(const set<Exp>* s1, const set<Exp>* s2) {
+  set<Exp> s3;
+  for(set<Exp>::iterator i = s1->begin(); i != s1->end(); i++) {
+      s3.insert(*i);
+  }
+  for(set<Exp>::iterator i = s2->begin(); i != s2->end(); i++) {
+      s3.insert(*i);
+  }
+  return s3;
+}
+
+set<Exp> Function::Not(const set<Exp>* s1) {
+  set<Exp> s2;
+  for(set<Exp>::iterator i = base.begin(); i != base.end(); i++) {
+    if (s1->find(*i) == s1->end()) {
+      s2.insert(*i);
+    }
+  }
+  return s2;
+}
+

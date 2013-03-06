@@ -51,6 +51,8 @@ int main(int argc, char* argv[]) {
       functions[i]->compute_DEE();
       functions[i]->compute_base();
       functions[i]->compute_KILL();
+      functions[i]->PRE_init();
+      functions[i]->compute_AVAIL();
     }
   }
 
