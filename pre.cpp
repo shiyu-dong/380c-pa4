@@ -313,47 +313,23 @@ void Function::compute_EARLIEST() {
 }
 
 void Function::compute_LATER() {
-  bool stable = 0;
-  while(!stable) {
-    stable = 1;
+  //LATERIN(0) = null
+  bb[0]->LATER_IN.clear();
 
-    // update LATER for all edges
-    for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
-        i != edge.end(); i++) {
-      BasicBlock* parent = i->second->parent;
-      set<Exp> temp = Not(& parent->UEE);
-      temp = Intersect(& parent->LATER_IN, & temp);
-      temp = Union(& i->second->EARLIEST, &temp);
 
-      if (!SetEqual(& temp, & i->second->LATER)) {
-        stable = 0;
-        i->second->LATER = temp;
-      }
-    }
-
-    // update LATER_IN for all bb
-    for(int i=0; i<bb.size(); i++) {
-      set<Exp> temp;
-      temp.clear();
-
-      if (bb[i]->parent_p.size() != 0) {
-        set<BasicBlock*>::iterator j = bb[i]->parent_p.begin();
-
-        Edge* e = edge[make_pair((*j)->num, bb[i]->num)];
-        temp = e->LATER;
-        j++;
-        while (j != bb[i]->parent_p.end()) {
-          e = edge[make_pair((*j)->num, bb[i]->num)];
-          Intersect(& temp, & e->LATER);
-          j++;
-        }
-      }
-
-      if (!SetEqual(& temp, & bb[i]->LATER_IN)) {
-        stable = 0;
-        bb[i]->LATER_IN = temp;
-      }
-    }
+  // update LATER for all edges
+  for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
+      i != edge.end(); i++) {
+    //cout  << i->first.first << " " << i->first.second << endl;
+    BasicBlock* parent = i->second->parent;
+    set<Exp> temp = Not(& parent->UEE);
+    temp = Intersect(& parent->LATER_IN, & temp);
+    temp = Union(& i->second->EARLIEST, &temp);
+    i->second->LATER = temp;
+    //update LATERIN for child
+    BasicBlock* child = i->second->child;
+    set<Exp> temp_LATER_IN = child->LATER_IN;
+    child->LATER_IN = Intersect(&temp_LATER_IN, &temp);  
   }
   //debug
   cout<<"LATER_IN func: "<<bb[0]->num<<"\n";
