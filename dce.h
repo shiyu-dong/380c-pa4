@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <map>
 using namespace std;
 
 #define PRE_OPCODE_RANGE 9 //(3+5+1)
@@ -83,8 +84,11 @@ struct BasicBlock {
   set<Exp> DEE;
   set<Exp> KILL;
 
-  set<Exp> AVAIL;
-  set<Exp> ANT;
+  set<Exp> AVAIL_IN;
+  set<Exp> AVAIL_OUT;
+  set<Exp> ANT_IN;
+  set<Exp> ANT_OUT;
+  set<Exp> DELETE;
 
   // temporary variable
   set<pair<OpType, int> > KILL_t;
@@ -104,8 +108,18 @@ struct BasicBlock {
   void compute_KILL(set<Exp>*);
 };
 
+struct Edge {
+  BasicBlock* parent;
+  BasicBlock* child;
+
+  set<Exp> EARLIEST;
+  set<Exp> LATER;
+  set<Exp> INSERT;
+};
+
 struct Function {
   vector<BasicBlock*> bb;
+  map<pair<int, int>, Edge*> edge;
   set<int> dead_var_offset;
 
   BasicBlock* get_bb(int);
@@ -132,6 +146,7 @@ struct Function {
   void PRE_init();
   void compute_AVAIL();
   void compute_ANT();
+  void compute_EARLIEST();
 
   set<Exp> Intersect(const set<Exp>*, const set<Exp>*);
   set<Exp> Union(const set<Exp>*, const set<Exp>*);
