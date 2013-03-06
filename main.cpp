@@ -56,6 +56,8 @@ int main(int argc, char* argv[]) {
       functions[i]->compute_ANT();
       functions[i]->compute_EARLIEST();
       functions[i]->compute_LATER();
+      functions[i]->compute_INSERT();
+      functions[i]->compute_DELETE();
     }
   }
 

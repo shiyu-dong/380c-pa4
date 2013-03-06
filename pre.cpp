@@ -349,6 +349,21 @@ void Function::compute_LATER() {
   }
 }
 
+void Function::compute_INSERT() {
+  for(map<pair<int, int>, Edge*>::iterator i = edge.begin();
+      i != edge.end(); i++) {
+    set<Exp> temp = Not(& i->second->child->LATER_IN);
+    i->second->INSERT = Intersect(& i->second->LATER, & temp);
+  }
+}
+
+void Function::compute_DELETE() {
+  for(int i=0; i<bb.size(); i++) {
+    set<Exp> temp = Not(& bb[i]->LATER_IN);
+    bb[i]->DELETE = Intersect(& bb[i]->UEE, & temp);
+  }
+}
+
 set<Exp> Function::Intersect(const set<Exp>* s1, const set<Exp>* s2) {
   set<Exp> s3;
   for(set<Exp>::iterator i = s1->begin(); i != s1->end(); i++) {
