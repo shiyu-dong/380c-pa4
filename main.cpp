@@ -44,8 +44,15 @@ int main(int argc, char* argv[]) {
     j++;
   }
 
+  // compute PRE
+  if(!strcmp(argv[1], "-opt=pre")) {
+    for(int i=0; i<functions.size(); i++) {
+      functions[i]->compute_KILL();
+    }
+  }
+
   // compute liveness and dce
-  if(!strcmp(argv[1], "-opt=dce")) {
+  else if(!strcmp(argv[1], "-opt=dce")) {
     for(int i=0; i<functions.size(); i++) {
       functions[i]->dce();
     }

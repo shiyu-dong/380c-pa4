@@ -50,7 +50,7 @@ struct Exp {
   }
 
   Exp(int _opcode_num, int _instr_num, list<pair<OpType, int> > _use) :
-    opcode_num(_opcode), instr_num(_instr_num), use(_use) {}
+    opcode_num(_opcode_num), instr_num(_instr_num), use(_use) {}
 };
 
 
@@ -117,10 +117,14 @@ struct Function {
   int next_instr_num(int);
 
   // PRE
+  void compute_KILL();
   void compute_DEE();
 };
 
 
 pair<OpType, int> get_1op(string instr);
 pair<OpType, int> get_2op(string instr);
+
+string itoa(int);
+int atoi(string);
 #endif
