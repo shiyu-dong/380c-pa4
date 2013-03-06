@@ -39,13 +39,13 @@ void printSet(set<pair<OpType, int> > s) {
   cout<<endl;
 }
 
-void BasicBlock::compute_KILL_UEE() {
+void BasicBlock::compute_UEE() {
   set<Exp> exps;
   for(list<Instr*>::iterator i = instr.begin();
       i != instr.end(); i++) {
     // insert this operand to KILL if it is defined by this instruction.
     if ((*i)->def.size() != 0 && ((*i)->def.front().first == REG || (*i)->def.front().first == VAR) ) {
-      KILL.insert((*i)->def.front());
+      KILL_t.insert((*i)->def.front());
     }
 
     // if the expression needs to be processed for PRE
@@ -74,7 +74,7 @@ void BasicBlock::compute_KILL_UEE() {
       bool is_UEE = 1;
       for(list<pair<OpType, int> >::iterator j = (*i)->use.begin();
           j != (*i)->use.end(); j++) {
-        if (KILL.find(*j) != KILL.end()) {
+        if (KILL_t.find(*j) != KILL_t.end()) {
           is_UEE = 0;
           break;
         }
@@ -87,16 +87,16 @@ void BasicBlock::compute_KILL_UEE() {
 
   // debug
   //cout<<"BB: "<<num<<endl;
-  //cout<<"KILL: \n";
-  //printSet(KILL);
+  //cout<<"KILL_t: \n";
+  //printSet(KILL_t);
   //cout<<"UEE: \n";
   //printSet(UEE);
   //cout<<endl;
 }
 
-void Function::compute_KILL_UEE() {
+void Function::compute_UEE() {
   for(int i=0; i<bb.size(); i++) 
-    bb[i]->compute_KILL_UEE();
+    bb[i]->compute_UEE();
 }
 
 void BasicBlock::compute_DEE() {
@@ -131,12 +131,54 @@ void BasicBlock::compute_DEE() {
   }
 
   // debug
-  cout<<"BB: "<<num<<endl;
-  cout<<"DEE: \n";
-  printSet(DEE);
+  //cout<<"BB: "<<num<<endl;
+  //cout<<"DEE: \n";
+  //printSet(DEE);
 }
 
 void Function::compute_DEE() {
   for(int i=0; i<bb.size(); i++) 
     bb[i]->compute_DEE();
+}
+
+
+void BasicBlock::compute_KILL(set<Exp>* base) {
+  for(set<pair<OpType, int> >::iterator i = KILL_t.begin();
+      i != KILL_t.end(); i++) {
+    for(set<Exp>::iterator j = base->begin();
+        j != base->end(); j++) {
+      for(list<pair<OpType, int> >::const_iterator k = j->use.begin();
+          k != j->use.end(); k++) {
+        if (*k == *i) {
+          KILL.insert(*j);
+        }
+      }
+    }
+  }
+
+  // debug
+  cout<<"BB: "<<num<<endl;
+  cout<<"KILL: \n";
+  printSet(KILL);
+}
+
+void Function::compute_KILL() {
+  for(int i=0; i<bb.size(); i++) 
+    bb[i]->compute_KILL(&base);
+}
+
+void Function::compute_base() {
+  for(int i=0; i<bb.size(); i++) {
+    for(list<Instr*>::iterator j = bb[i]->instr.begin();
+        j != bb[i]->instr.end(); j++) {
+      if ((*j)->opcode_num != -1 && (*j)->opcode_num < PRE_OPCODE_RANGE) {
+        Exp t((*j)->opcode_num, (*j)->num, (*j)->use);
+        base.insert(t);
+      }
+    }
+  }
+
+  // debug
+  cout<<"base: \n";
+  printSet(base);
 }
