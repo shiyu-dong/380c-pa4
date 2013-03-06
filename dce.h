@@ -82,6 +82,10 @@ struct BasicBlock {
   set<Exp> UEE;
   set<Exp> DEE;
   set<Exp> KILL;
+
+  set<Exp> AVAIL;
+
+  // temporary variable
   set<pair<OpType, int> > KILL_t;
 
   // CFG
@@ -124,6 +128,12 @@ struct Function {
   void compute_DEE();
   void compute_KILL();
   void compute_base();
+  void PRE_init();
+  void compute_AVAIL();
+
+  set<Exp> Intersect(const set<Exp>*, const set<Exp>*);
+  set<Exp> Union(const set<Exp>*, const set<Exp>*);
+  set<Exp> Not(const set<Exp>*);
 };
 
 
