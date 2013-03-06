@@ -23,6 +23,14 @@ string MakeMove(int instr_num, int use, int def) {
   return t;
 }
 
+void printSet(set<pair<OpType, int> > s) {
+  for(set<pair<OpType, int> >::iterator i = s.begin();
+      i != s.end(); i++) {
+    cout<<i->first<<" "<<i->second<<endl;
+  }
+  cout<<endl;
+}
+
 void BasicBlock::compute_DEE() {
 }
 
@@ -55,6 +63,11 @@ void BasicBlock::compute_KILL() {
       }
     }
   }
+
+  // debug
+  cout<<"BB: "<<num<<endl;
+  printSet(KILL);
+  cout<<endl;
 }
 
 void Function::compute_KILL() {
