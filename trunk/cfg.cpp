@@ -380,6 +380,15 @@ void Function::populate() {
       BasicBlock* b = get_bb(*it);
       bb[i]->children_p.insert(b);
       b->parent_p.insert(bb[i]);
+
+      int child_num = b->num;
+      pair<int, int> temp_pair = make_pair(bb[i]->num, child_num);
+      edge[temp_pair] = new Edge;
+      edge[temp_pair]->parent = bb[i];
+      edge[temp_pair]->child = b;
+      edge[temp_pair]->EARLIEST.clear();
+      edge[temp_pair]->LATER.clear();
+      edge[temp_pair]->INSERT.clear();
     }
   }
 

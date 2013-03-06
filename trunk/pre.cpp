@@ -191,8 +191,8 @@ void Function::compute_base() {
 
 void Function::PRE_init() {
   for(int i=0; i<bb.size(); i++) {
-    bb[i]->AVAIL = base;
-    bb[i]->ANT = base;
+    bb[i]->AVAIL_OUT = base;
+    bb[i]->ANT_OUT = base;
   }
 }
 
@@ -203,40 +203,40 @@ void Function::compute_ANT() {
 
     // backward analysis
     for(int i=bb.size()-1; i >= 0; i--) {
-      set<Exp> temp;
+      bb[i]->ANT_IN.clear();
 
       // Intersection of all children
       if (bb[i]->children_p.size() != 0) {
         set<BasicBlock*>::iterator j = bb[i]->children_p.begin();
-        temp = (*j)->ANT;
+        bb[i]->ANT_IN = (*j)->ANT_OUT;
         j++;
         while(j != bb[i]->children_p.end()) {
-          temp = Intersect(& (*j)->ANT, &temp);
+          bb[i]->ANT_IN = Intersect(& (*j)->ANT_OUT, &bb[i]->ANT_IN);
           j++;
         }
       }
 
       // Intersect (Not(KILL), temp)
       set<Exp> temp2 = Not(&bb[i]->KILL);
-      temp = Intersect(&temp, &temp2);
+      temp2 = Intersect(&bb[i]->ANT_IN, &temp2);
 
       // Or (temp, UEE)
-      temp = Union(&temp, &bb[i]->UEE);
+      temp2 = Union(&temp2, &bb[i]->UEE);
 
       // check if ANT stables
-      if (! SetEqual(& temp, & bb[i]->ANT)) {
-        bb[i]->ANT = temp;
+      if (! SetEqual(& temp2, & bb[i]->ANT_OUT)) {
+        bb[i]->ANT_OUT = temp2;
         stable = 0;
       }
     }
   }
 
   // debug
-  cout<<"ANT func: "<<bb[0]->num<<"\n";
-  for(int i=0; i<bb.size(); i++) {
-    cout<<"BB num: "<<bb[i]->num<<endl;
-    printSet(bb[i]->ANT);
-  }
+  //cout<<"ANT func: "<<bb[0]->num<<"\n";
+  //for(int i=0; i<bb.size(); i++) {
+  //  cout<<"BB num: "<<bb[i]->num<<endl;
+  //  printSet(bb[i]->ANT_OUT);
+  //}
 }
 
 void Function::compute_AVAIL() {
@@ -246,33 +246,29 @@ void Function::compute_AVAIL() {
 
     // forward analysis
     for(int i=0; i<bb.size(); i++) {
-      set<Exp> temp;
-      temp.clear();
-
-//      if (bb[i]->parent_p.size() == 0)
-//        temp.clear();
+      bb[i]->AVAIL_IN.clear();
 
       // intersection of all children
       if (bb[i]->parent_p.size() != 0) {
         set<BasicBlock*>::iterator j = bb[i]->parent_p.begin();
-        temp = (*j)->AVAIL;
+        bb[i]->AVAIL_IN = (*j)->AVAIL_OUT;
         j++;
         while(j != bb[i]->parent_p.end()) {
-          temp = Intersect(& (*j)->AVAIL, & temp);
+          bb[i]->AVAIL_IN = Intersect(& (*j)->AVAIL_OUT, & bb[i]->AVAIL_IN);
           j++;
         }
       }
 
       // Intersect (Not(Kill), temp)
       set<Exp> temp2 = Not(&bb[i]->KILL);
-      temp = Intersect(&temp, &temp2);
+      temp2 = Intersect(&bb[i]->AVAIL_IN, &temp2);
 
       // Or (temp, DEE)
-      temp = Union(&temp, &bb[i]->DEE);
+      temp2 = Union(&temp2, &bb[i]->DEE);
 
       // check if AVAIL stables
-      if (! SetEqual(& temp, & bb[i]->AVAIL)) {
-        bb[i]->AVAIL = temp;
+      if (! SetEqual(& temp2, & bb[i]->AVAIL_OUT)) {
+        bb[i]->AVAIL_OUT = temp2;
         stable = 0;
       }
     }
@@ -282,10 +278,26 @@ void Function::compute_AVAIL() {
   //cout<<"AVAIL func: "<<bb[0]->num<<"\n";
   //for(int i=0; i<bb.size(); i++) {
   //  cout<<"BB num: "<<bb[i]->num<<endl;
-  //  printSet(bb[i]->AVAIL);
+  //  printSet(bb[i]->AVAIL_OUT);
   //}
 }
 
+void Function::compute_EARLIEST() {
+  // for each edge
+  for(map<pair<int, int>, Edge*>::iterator i = edge.begin();
+      i != edge.end(); i++) {
+    Edge* t = i->second;
+
+    set<Exp> temp = Not(& t->parent->AVAIL_OUT);
+    t->EARLIEST = Intersect(& t->child->ANT_IN, &temp);
+
+    if (t->parent->parent_p.size() != 0) {
+      set<Exp> temp2 = Not(& t->parent->ANT_OUT);
+      temp2 = Union(& t->parent->KILL, & temp2);
+      t->EARLIEST = Intersect(& t->EARLIEST, & temp2);
+    }
+  }
+}
 
 set<Exp> Function::Intersect(const set<Exp>* s1, const set<Exp>* s2) {
   set<Exp> s3;
