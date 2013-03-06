@@ -89,6 +89,7 @@ struct BasicBlock {
   set<Exp> ANT_IN;
   set<Exp> ANT_OUT;
   set<Exp> DELETE;
+  set<Exp> LATER_IN;
 
   // temporary variable
   set<pair<OpType, int> > KILL_t;
@@ -147,6 +148,7 @@ struct Function {
   void compute_AVAIL();
   void compute_ANT();
   void compute_EARLIEST();
+  void compute_LATER();
 
   set<Exp> Intersect(const set<Exp>*, const set<Exp>*);
   set<Exp> Union(const set<Exp>*, const set<Exp>*);
