@@ -81,7 +81,8 @@ struct BasicBlock {
 
   set<Exp> UEE;
   set<Exp> DEE;
-  set<pair<OpType, int> > KILL;
+  set<Exp> KILL;
+  set<pair<OpType, int> > KILL_t;
 
   // CFG
   bool populate();
@@ -93,8 +94,9 @@ struct BasicBlock {
   inline void add_instr_use(list<Instr*>::iterator);
 
   // PRE
-  void compute_KILL_UEE(); // eliminate local redundancy
+  void compute_UEE(); // eliminate local redundancy
   void compute_DEE();
+  void compute_KILL(set<Exp>*);
 };
 
 struct Function {
@@ -116,8 +118,12 @@ struct Function {
   int next_instr_num(int);
 
   // PRE
-  void compute_KILL_UEE();
+  set<Exp> base;
+
+  void compute_UEE();
   void compute_DEE();
+  void compute_KILL();
+  void compute_base();
 };
 
 
