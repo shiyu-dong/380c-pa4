@@ -302,6 +302,14 @@ void Function::compute_EARLIEST() {
       t->EARLIEST = Intersect(& t->EARLIEST, & temp2);
     }
   }
+  //debug
+  for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
+      i != edge.end(); i++) {
+      cout << "EARLIEST edge: " << i->second->parent->num << " -> " <<
+        i->second->child->num << endl;
+      printSet(i->second->EARLIEST);
+  }
+  cout << endl;
 }
 
 void Function::compute_LATER() {
@@ -347,6 +355,22 @@ void Function::compute_LATER() {
       }
     }
   }
+  //debug
+  cout<<"LATER_IN func: "<<bb[0]->num<<"\n";
+  for(int i=0; i<bb.size(); i++) {
+    cout<<"BB num: "<<bb[i]->num<<endl;
+    printSet(bb[i]->LATER_IN);
+  }
+  cout << endl;
+
+  //debug
+  for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
+      i != edge.end(); i++) {
+      cout << "LATER edge: " << i->second->parent->num << " -> " <<
+        i->second->child->num << endl;
+      printSet(i->second->LATER);
+  }
+  cout << endl;
 }
 
 void Function::compute_INSERT() {
@@ -355,6 +379,14 @@ void Function::compute_INSERT() {
     set<Exp> temp = Not(& i->second->child->LATER_IN);
     i->second->INSERT = Intersect(& i->second->LATER, & temp);
   }
+  //debug
+  for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
+      i != edge.end(); i++) {
+      cout << "INSERT edge: " << i->second->parent->num << " -> " <<
+        i->second->child->num << endl;
+      printSet(i->second->INSERT);
+  }
+  cout << endl;
 }
 
 void Function::compute_DELETE() {
@@ -362,6 +394,13 @@ void Function::compute_DELETE() {
     set<Exp> temp = Not(& bb[i]->LATER_IN);
     bb[i]->DELETE = Intersect(& bb[i]->UEE, & temp);
   }
+  //debug
+  cout<<"DELETE func: "<<bb[0]->num<<"\n";
+  for(int i=0; i<bb.size(); i++) {
+    cout<<"BB num: "<<bb[i]->num<<endl;
+    printSet(bb[i]->DELETE);
+  }
+  cout << endl;
 }
 
 set<Exp> Function::Intersect(const set<Exp>* s1, const set<Exp>* s2) {
