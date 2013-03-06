@@ -48,6 +48,7 @@ int main(int argc, char* argv[]) {
   if(!strcmp(argv[1], "-opt=pre")) {
     for(int i=0; i<functions.size(); i++) {
       functions[i]->compute_KILL_UEE();
+      functions[i]->compute_DEE();
     }
   }
 

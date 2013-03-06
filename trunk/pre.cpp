@@ -49,7 +49,7 @@ void BasicBlock::compute_KILL_UEE() {
     }
 
     // if the expression needs to be processed for PRE
-    if ((*i)->opcode_num != -1) {
+    if ((*i)->opcode_num != -1 && (*i)->opcode_num < PRE_OPCODE_RANGE) {
       Exp t((*i)->opcode_num, (*i)->num, (*i)->use);
 
       // local redundancy
@@ -86,12 +86,12 @@ void BasicBlock::compute_KILL_UEE() {
   }
 
   // debug
-  cout<<"BB: "<<num<<endl;
-  cout<<"KILL: \n";
-  printSet(KILL);
-  cout<<"UEE: \n";
-  printSet(UEE);
-  cout<<endl;
+  //cout<<"BB: "<<num<<endl;
+  //cout<<"KILL: \n";
+  //printSet(KILL);
+  //cout<<"UEE: \n";
+  //printSet(UEE);
+  //cout<<endl;
 }
 
 void Function::compute_KILL_UEE() {
@@ -100,7 +100,40 @@ void Function::compute_KILL_UEE() {
 }
 
 void BasicBlock::compute_DEE() {
+  set<pair<OpType, int> > kill_dee;
 
+  list<Instr*>::iterator i = instr.end();
+  while( i != instr.begin()) {
+    i--;
+
+    // check if this instruction kills any variable
+    if ((*i)->def.size() != 0 && ((*i)->def.front().first == REG || (*i)->def.front().first == VAR) ) {
+      kill_dee.insert((*i)->def.front());
+    }
+
+    // if the expression needs to be processed for PRE
+    if ((*i)->opcode_num != -1 && (*i)->opcode_num < PRE_OPCODE_RANGE) {
+      Exp t((*i)->opcode_num, (*i)->num, (*i)->use);
+
+      // check if the expression uses any kills
+      bool is_DEE = 1;
+      for(list<pair<OpType, int> >::iterator j = (*i)->use.begin();
+          j != (*i)->use.end(); j++) {
+        if (kill_dee.find(*j) != kill_dee.end()) {
+          is_DEE = 0;
+          break;
+        }
+      }
+      if (is_DEE) {
+        DEE.insert(t);
+      }
+    }
+  }
+
+  // debug
+  cout<<"BB: "<<num<<endl;
+  cout<<"DEE: \n";
+  printSet(DEE);
 }
 
 void Function::compute_DEE() {
