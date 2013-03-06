@@ -27,7 +27,6 @@ void printSet(set<Exp> s) {
   for(set<Exp>::iterator i = s.begin(); i != s.end(); i++) {
     cout<<"Exp: "<<i->instr_num<<endl;
   }
-  cout<<endl;
 }
 
 
@@ -36,7 +35,6 @@ void printSet(set<pair<OpType, int> > s) {
       i != s.end(); i++) {
     cout<<i->first<<" "<<i->second<<endl;
   }
-  cout<<endl;
 }
 
 bool SetEqual(set<Exp>* s1, set<Exp>* s2) {
@@ -99,9 +97,9 @@ void BasicBlock::compute_UEE() {
   // debug
   //cout<<"KILL_t: \n";
   //printSet(KILL_t);
-  cout<<"UEE BB: "<<num<<endl;
-  printSet(UEE);
-  cout<<endl;
+  //cout<<"UEE BB: "<<num<<endl;
+  //printSet(UEE);
+  //cout<<endl;
 }
 
 void Function::compute_UEE() {
@@ -141,8 +139,8 @@ void BasicBlock::compute_DEE() {
   }
 
   // debug
-  cout<<"DEE BB: "<<num<<endl;
-  printSet(DEE);
+  //cout<<"DEE BB: "<<num<<endl;
+  //printSet(DEE);
 }
 
 void Function::compute_DEE() {
@@ -166,8 +164,8 @@ void BasicBlock::compute_KILL(set<Exp>* base) {
   }
 
   // debug
-  cout<<"KILL BB: "<<num<<endl;
-  printSet(KILL);
+  //cout<<"KILL BB: "<<num<<endl;
+  //printSet(KILL);
 }
 
 void Function::compute_KILL() {
@@ -193,8 +191,51 @@ void Function::compute_base() {
 
 void Function::PRE_init() {
   for(int i=0; i<bb.size(); i++) {
-    // AVAIL
     bb[i]->AVAIL = base;
+    bb[i]->ANT = base;
+  }
+}
+
+void Function::compute_ANT() {
+  bool stable = 0;
+  while(!stable) {
+    stable = 1;
+
+    // backward analysis
+    for(int i=bb.size()-1; i >= 0; i--) {
+      set<Exp> temp;
+
+      // Intersection of all children
+      if (bb[i]->children_p.size() != 0) {
+        set<BasicBlock*>::iterator j = bb[i]->children_p.begin();
+        temp = (*j)->ANT;
+        j++;
+        while(j != bb[i]->children_p.end()) {
+          temp = Intersect(& (*j)->ANT, &temp);
+          j++;
+        }
+      }
+
+      // Intersect (Not(KILL), temp)
+      set<Exp> temp2 = Not(&bb[i]->KILL);
+      temp = Intersect(&temp, &temp2);
+
+      // Or (temp, UEE)
+      temp = Union(&temp, &bb[i]->UEE);
+
+      // check if ANT stables
+      if (! SetEqual(& temp, & bb[i]->ANT)) {
+        bb[i]->ANT = temp;
+        stable = 0;
+      }
+    }
+  }
+
+  // debug
+  cout<<"ANT func: "<<bb[0]->num<<"\n";
+  for(int i=0; i<bb.size(); i++) {
+    cout<<"BB num: "<<bb[i]->num<<endl;
+    printSet(bb[i]->ANT);
   }
 }
 
@@ -202,15 +243,17 @@ void Function::compute_AVAIL() {
   bool stable = 0;
   while(!stable) {
     stable = 1;
-    // starting from a node that is not "start"
+
+    // forward analysis
     for(int i=0; i<bb.size(); i++) {
       set<Exp> temp;
+      temp.clear();
 
-      // AVAIL_IN
-      if (bb[i]->parent_p.size() == 0)
-        temp.clear();
+//      if (bb[i]->parent_p.size() == 0)
+//        temp.clear();
 
-      else {
+      // intersection of all children
+      if (bb[i]->parent_p.size() != 0) {
         set<BasicBlock*>::iterator j = bb[i]->parent_p.begin();
         temp = (*j)->AVAIL;
         j++;

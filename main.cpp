@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
       functions[i]->compute_KILL();
       functions[i]->PRE_init();
       functions[i]->compute_AVAIL();
+      functions[i]->compute_ANT();
     }
   }
 
