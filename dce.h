@@ -35,15 +35,13 @@ struct Exp {
   inline bool operator<(const Exp& e) const {
     if (opcode_num != e.opcode_num)
       return opcode_num < e.opcode_num;
-    else if (use.front().first < e.use.front().first)
+    else if (use.front().first != e.use.front().first)
       return use.front().first < e.use.front().first;
-    else if (use.front().second < e.use.front().second)
+    else if (use.front().second != e.use.front().second)
       return use.front().second < e.use.front().second;
     else if (use.size() != e.use.size()) 
       return use.size() < e.use.size();
-    else if (use.size() == 1)
-      return false;
-    else if (use.back().first < e.use.back().first)
+    else if (use.back().first != e.use.back().first)
       return use.back().first < e.use.back().first;
     else
       return use.back().second < e.use.back().second;
@@ -81,6 +79,7 @@ struct BasicBlock {
   set<int> live_list;  // always refers to C variables
   set<int> children_live; // live C variables of children
 
+  set<Exp> UEE;
   set<Exp> DEE;
   set<pair<OpType, int> > KILL;
 
@@ -94,7 +93,7 @@ struct BasicBlock {
   inline void add_instr_use(list<Instr*>::iterator);
 
   // PRE
-  void compute_KILL(); // eliminate local redundancy
+  void compute_KILL_UEE(); // eliminate local redundancy
   void compute_DEE();
 };
 
@@ -117,7 +116,7 @@ struct Function {
   int next_instr_num(int);
 
   // PRE
-  void compute_KILL();
+  void compute_KILL_UEE();
   void compute_DEE();
 };
 

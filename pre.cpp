@@ -23,6 +23,14 @@ string MakeMove(int instr_num, int use, int def) {
   return t;
 }
 
+void printSet(set<Exp> s) {
+  for(set<Exp>::iterator i = s.begin(); i != s.end(); i++) {
+    cout<<"Exp: "<<i->instr_num<<endl;
+  }
+  cout<<endl;
+}
+
+
 void printSet(set<pair<OpType, int> > s) {
   for(set<pair<OpType, int> >::iterator i = s.begin();
       i != s.end(); i++) {
@@ -31,10 +39,7 @@ void printSet(set<pair<OpType, int> > s) {
   cout<<endl;
 }
 
-void BasicBlock::compute_DEE() {
-}
-
-void BasicBlock::compute_KILL() {
+void BasicBlock::compute_KILL_UEE() {
   set<Exp> exps;
   for(list<Instr*>::iterator i = instr.begin();
       i != instr.end(); i++) {
@@ -43,11 +48,14 @@ void BasicBlock::compute_KILL() {
       KILL.insert((*i)->def.front());
     }
 
-    // check if the expression has appeared before in this BB
+    // if the expression needs to be processed for PRE
     if ((*i)->opcode_num != -1) {
       Exp t((*i)->opcode_num, (*i)->num, (*i)->use);
 
-      set<Exp>::iterator it = exps.find(t);
+      // local redundancy
+      // check if the expression has appeared before in this BB
+      set<Exp>::iterator it;
+      it = exps.find(t);
       if (it == exps.end()) {
         exps.insert(t);
       }
@@ -61,18 +69,38 @@ void BasicBlock::compute_KILL() {
         (*i)->instr.clear();
         (*i)->instr += MakeMove((*i)->num, it->instr_num, (*i)->num);
       }
+
+      // check if the expression uses any kills
+      bool is_UEE = 1;
+      for(list<pair<OpType, int> >::iterator j = (*i)->use.begin();
+          j != (*i)->use.end(); j++) {
+        if (KILL.find(*j) != KILL.end()) {
+          is_UEE = 0;
+          break;
+        }
+      }
+      if (is_UEE) {
+        UEE.insert(t);
+      }
     }
   }
 
   // debug
   cout<<"BB: "<<num<<endl;
+  cout<<"KILL: \n";
   printSet(KILL);
+  cout<<"UEE: \n";
+  printSet(UEE);
   cout<<endl;
 }
 
-void Function::compute_KILL() {
+void Function::compute_KILL_UEE() {
   for(int i=0; i<bb.size(); i++) 
-    bb[i]->compute_KILL();
+    bb[i]->compute_KILL_UEE();
+}
+
+void BasicBlock::compute_DEE() {
+
 }
 
 void Function::compute_DEE() {
