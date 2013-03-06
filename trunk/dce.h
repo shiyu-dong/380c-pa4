@@ -84,6 +84,7 @@ struct BasicBlock {
   set<Exp> KILL;
 
   set<Exp> AVAIL;
+  set<Exp> ANT;
 
   // temporary variable
   set<pair<OpType, int> > KILL_t;
@@ -130,6 +131,7 @@ struct Function {
   void compute_base();
   void PRE_init();
   void compute_AVAIL();
+  void compute_ANT();
 
   set<Exp> Intersect(const set<Exp>*, const set<Exp>*);
   set<Exp> Union(const set<Exp>*, const set<Exp>*);
