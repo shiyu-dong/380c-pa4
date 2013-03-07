@@ -315,7 +315,9 @@ void Function::compute_EARLIEST() {
 void Function::compute_LATER() {
   //LATERIN(0) = null
   bb[0]->LATER_IN.clear();
-
+  for (int i = 1; i < bb.size(); ++i) {
+    bb[i]->LATER_IN = base;
+  }
 
   // update LATER for all edges
   for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
