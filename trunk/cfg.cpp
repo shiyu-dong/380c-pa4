@@ -387,7 +387,6 @@ void Function::populate() {
       edge[temp_pair]->parent = bb[i];
       edge[temp_pair]->child = b;
       edge[temp_pair]->EARLIEST.clear();
-      edge[temp_pair]->LATER.clear();
       edge[temp_pair]->INSERT.clear();
     }
   }
