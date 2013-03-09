@@ -47,8 +47,5 @@
     instr 47: load (46)
     instr 48: write (47)
     instr 49: wrl
-    instr 50: add a#24 c#-8
-    instr 51: move (50) a#24
-    instr 52: add d#-24 a#24
-    instr 53: ret 0
-    instr 54: nop
+    instr 50: ret 0
+    instr 51: nop
