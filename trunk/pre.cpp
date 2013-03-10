@@ -95,8 +95,8 @@ void BasicBlock::compute_UEE() {
   }
 
   // debug
-  cout<<"KILL_t: \n";
-  printSet(KILL_t);
+  //cout<<"KILL_t: \n";
+  //printSet(KILL_t);
   cout<<"UEE BB: "<<num<<endl;
   printSet(UEE);
   cout<<endl;
@@ -185,8 +185,8 @@ void Function::compute_base() {
   }
 
   // debug
-  //cout<<"base: \n";
-  //printSet(base);
+  cout<<"base: \n";
+  printSet(base);
 }
 
 void Function::PRE_init() {
@@ -316,6 +316,11 @@ void Function::compute_AVAIL() {
   }
 
   // debug
+  cout<<"AVAIL_IN func: "<<bb[0]->num<<"\n";
+  for(int i=0; i<bb.size(); i++) {
+    cout<<"BB num: "<<bb[i]->num<<endl;
+    printSet(bb[i]->AVAIL_IN);
+  }
   cout<<"AVAIL func: "<<bb[0]->num<<"\n";
   for(int i=0; i<bb.size(); i++) {
     cout<<"BB num: "<<bb[i]->num<<endl;
