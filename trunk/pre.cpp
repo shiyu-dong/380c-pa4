@@ -1,9 +1,12 @@
+#include <string>
 #include <assert.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include "dce.h"
 #include <stdio.h>
+
+extern string opcode[];
 
 inline string itoa(int i) {
   stringstream ss;
@@ -25,7 +28,7 @@ string MakeMove(int instr_num, int use, int def) {
 
 void printSet(set<Exp> s) {
   for(set<Exp>::iterator i = s.begin(); i != s.end(); i++) {
-    cout<<"Exp: "<<i->instr_num<<endl;
+    cout<<"Exp: "<<i->instr_num<<" "<<i->exp<<endl;
   }
 }
 
@@ -59,7 +62,7 @@ void BasicBlock::compute_UEE() {
 
     // if the expression needs to be processed for PRE
     if ((*i)->opcode_num != -1 && (*i)->opcode_num < PRE_OPCODE_RANGE) {
-      Exp t((*i)->opcode_num, (*i)->num, (*i)->use);
+      Exp t((*i)->opcode_num, (*i)->num, (*i)->use, (*i)->instr);
 
       // local redundancy
       // check if the expression has appeared before in this BB
@@ -94,11 +97,9 @@ void BasicBlock::compute_UEE() {
     }
   }
 
-  //debug
-  //cout<<"KILL_t BB: "<<num<<endl;
+  // debug
+  //cout<<"KILL_t: \n";
   //printSet(KILL_t);
-  //cout << endl;
-
   cout<<"UEE BB: "<<num<<endl;
   printSet(UEE);
   cout<<endl;
@@ -123,7 +124,7 @@ void BasicBlock::compute_DEE() {
 
     // if the expression needs to be processed for PRE
     if ((*i)->opcode_num != -1 && (*i)->opcode_num < PRE_OPCODE_RANGE) {
-      Exp t((*i)->opcode_num, (*i)->num, (*i)->use);
+      Exp t((*i)->opcode_num, (*i)->num, (*i)->use, (*i)->instr);
 
       // check if the expression uses any kills
       bool is_DEE = 1;
@@ -180,7 +181,7 @@ void Function::compute_base() {
     for(list<Instr*>::iterator j = bb[i]->instr.begin();
         j != bb[i]->instr.end(); j++) {
       if ((*j)->opcode_num != -1 && (*j)->opcode_num < PRE_OPCODE_RANGE) {
-        Exp t((*j)->opcode_num, (*j)->num, (*j)->use);
+        Exp t((*j)->opcode_num, (*j)->num, (*j)->use, (*j)->instr);
         base.insert(t);
       }
     }
@@ -448,6 +449,142 @@ void Function::compute_DELETE() {
     printSet(bb[i]->DELETE);
   }
   cout << endl;
+}
+
+void Function::rewrite() {
+  // remember number of new bb that I inserted
+  map<pair<int, int>, BasicBlock*> new_bb;
+  // start new instruction number backwards
+  int new_instr_num = 65535;
+
+  // for each edge
+  for(map<pair<int, int>, Edge*>::iterator i=edge.begin();
+      i != edge.end(); i++) {
+
+    // for each insert in the edge
+    for(set<Exp>::iterator j = i->second->INSERT.begin();
+        j != i->second->INSERT.end(); j++) {
+
+      // create new instruction
+      Instr* new_instr = new Instr;
+      new_instr->num = new_instr_num;
+      new_instr->use = j->use;
+      new_instr->def.push_back(make_pair(REG, new_instr->num));
+      new_instr->opcode_num = j->opcode_num;
+      new_instr->opcode = opcode[j->opcode_num];
+      new_instr->instr = "    instr ";
+      new_instr->instr.append(itoa(new_instr_num));
+      new_instr->instr.append(": ");
+      new_instr->instr.append(j->exp);
+      new_instr_num--;
+
+      // just one successor
+      if (i->second->parent->children_p.size() == 1) {
+        BasicBlock* parent = i->second->parent;
+
+        // check if last instruction is a branch
+        int last_instr = parent->instr.back()->num;
+        list<Instr*>::iterator it = parent->instr.end();
+        if (last_instr == 16 || last_instr == 11 || last_instr == 12) {
+          // if last instr is a branch, need to insert it before it
+          it --;
+        }
+        // insert the instruction to the end, or the last second position
+        // in parent basic block
+        parent->instr.insert(it, new_instr);
+      }
+
+      // just one predecessor
+      else if (i->second->child->parent_p.size() == 1) {
+        BasicBlock* child = i->second->child;
+        list<Instr*>::iterator it = child->instr.begin();
+        // always insert this instruction at the very beginning
+        child->instr.insert(it, new_instr);
+      }
+      
+      // insert instruction into a newly created bb
+      else if (new_bb.find(make_pair(i->first.first, i->first.second)) != new_bb.end()) {
+        BasicBlock* bb = new_bb[make_pair(i->first.first, i->first.second)];
+        list<Instr*>::iterator it = bb->instr.begin();
+        // always insert this instruction at the very beginning
+        bb->instr.insert(it, new_instr);
+      }
+
+      // more than one successors and predecessors
+      else {
+        BasicBlock* this_bb = new BasicBlock;
+        this_bb->num = new_instr->num;
+        this_bb->main = 0;
+        list<Instr*>::iterator it = this_bb->instr.begin();
+        // always insert this instruction at the very beginning
+        this_bb->instr.insert(it, new_instr);
+        this_bb->num = new_instr->num;
+        // reconnect at the end of this function
+        // add to new_bb
+        new_bb[make_pair(i->first.first, i->first.second)] = this_bb;
+      }
+      // TODO: delete goes here
+    } // end of each insert in an edge
+  } // end of all edges
+
+  // reconnect the graph
+  // children, children_p, parent_p
+  for(map<pair<int, int>, BasicBlock*>::iterator i = new_bb.begin();
+      i != new_bb.end(); i++) {
+    int parent_num = i->first.first;
+    int child_num = i->first.second;
+    BasicBlock* parent = get_bb(parent_num);
+    BasicBlock* child = get_bb(child_num);
+    BasicBlock* this_bb = i->second;
+
+    // reconnect pointers
+    parent->children_p.erase(child);
+    parent->children_p.insert(this_bb);
+    parent->children.erase(child_num);
+    child->parent_p.erase(parent);
+    child->parent_p.insert(this_bb);
+    this_bb->children.insert(child_num);
+    this_bb->children_p.insert(child);
+    this_bb->parent_p.insert(parent);
+
+    if (parent->branch_target == child_num) {
+      // edge is a branch taken
+      // change the branch target of the last instruction of parent
+      parent->branch_target = this_bb->num;
+      string* instr_str = &(parent->instr.back()->instr);
+      int pos = instr_str->rfind('[');
+      *instr_str = instr_str->substr(0, pos+1);
+      instr_str->append(itoa(this_bb->num));
+      instr_str->append("]");
+
+      // add unconditional branch at the end to the new bb
+      Instr* this_instr = new Instr;
+      this_instr->instr = "    instr ";
+      this_instr->instr.append(itoa(new_instr_num));
+      this_instr->instr.append(": br [");
+      this_instr->instr.append(itoa(child->instr.front()->num));// branch to the actual instruction number
+      this_instr->instr.append("]");
+      this_instr->opcode_num = 16;
+      this_instr->opcode = "br";
+      this_bb->instr.push_back(this_instr);
+      new_instr_num--;
+      // insert new bb before the children
+      vector<BasicBlock*>::iterator j = bb.begin();
+      while(*j != child)
+        j++;
+      j++;
+      bb.insert(j, this_bb);
+    }
+    else {
+      // edge is instruction order
+      // insert new bb after the old parent
+      vector<BasicBlock*>::iterator j = bb.begin();
+      while(*j != parent)
+        j++;
+      j++;
+      bb.insert(j, this_bb);
+    }
+  } // end of reconnect
 }
 
 set<Exp> Function::Intersect(const set<Exp>* s1, const set<Exp>* s2) {
