@@ -94,9 +94,11 @@ void BasicBlock::compute_UEE() {
     }
   }
 
-  // debug
-  //cout<<"KILL_t: \n";
+  //debug
+  //cout<<"KILL_t BB: "<<num<<endl;
   //printSet(KILL_t);
+  //cout << endl;
+
   cout<<"UEE BB: "<<num<<endl;
   printSet(UEE);
   cout<<endl;
