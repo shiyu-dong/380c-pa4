@@ -95,7 +95,7 @@
     instr 93: wrl
     instr 94: ret 16
 
-#function: 124
+#function: 95
     instr 95: enter 8
     instr 96: add a#32 b#24
     instr 97: add (96) c#16
@@ -132,6 +132,7 @@
 
     instr 123: ret 24
 
+#function: 124
     instr 124: enter 0
     instr 125: cmplt b#32 c#24
     instr 126: blbc (125) [129]
