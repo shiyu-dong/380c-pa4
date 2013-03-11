@@ -296,7 +296,7 @@ bool Instr::populate(string temp, bool& main) {
   for(int i=0; i<BB_END_SIZE; i++) {
     found = instr.find(bb_end[i]);
     if (found != std::string::npos) {
-      opcode = def_reg2[i];
+      opcode = bb_end[i];
       opcode_num = opcode_count;
 
       return 0;
