@@ -31,6 +31,7 @@ struct Exp {
   int opcode_num;
   int instr_num;
   list<pair<OpType, int> > use;
+  string exp;
 
   // Exp always have at least on operator
   inline bool operator<(const Exp& e) const {
@@ -48,8 +49,11 @@ struct Exp {
       return use.back().second < e.use.back().second;
   }
 
-  Exp(int _opcode_num, int _instr_num, list<pair<OpType, int> > _use) :
-    opcode_num(_opcode_num), instr_num(_instr_num), use(_use) {}
+  Exp(int _opcode_num, int _instr_num, list<pair<OpType, int> > _use, string instr) :
+    opcode_num(_opcode_num), instr_num(_instr_num), use(_use) {
+      int found = instr.find(':');
+      exp = instr.substr(found+2);
+    }
 };
 
 
@@ -152,6 +156,7 @@ struct Function {
   void compute_LATER();
   void compute_INSERT();
   void compute_DELETE();
+  void rewrite();
 
   set<Exp> Intersect(const set<Exp>*, const set<Exp>*);
   set<Exp> Union(const set<Exp>*, const set<Exp>*);

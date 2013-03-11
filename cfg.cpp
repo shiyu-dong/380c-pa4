@@ -7,7 +7,8 @@
 set<int> br_target;
 bool main_next = 0;
 
-string opcode[] = {"add", "mul", "cmpeq", "sub", "div", "mod", "cmple", "cmplt", "neg"};
+string opcode[] = {"add", "mul", "cmpeq", "sub", "div", "mod", "cmple", "cmplt", "neg",
+                   "load", "store", "INVALID", "INVALID", "move", "write", "param", "br", "ret", "call", "blbc", "blbs"};
 
 
 //#define PRE_OPCODE_RANGE 9 //(3+5+1)
@@ -44,7 +45,7 @@ string def_reg6[] = {"write", "param"};
 // br, blbs, blbc
 // type 8, ret, call, enter, entrypc, read, wrl, nop won't be deleted and depend on nothing
 #define BB_END_SIZE 5
-string bb_end[] = {"br", "blbc", "blbs", "ret", "call"};
+string bb_end[] = {"br", "ret", "call", "blbc", "blbs"};
 
 inline int atoi(string s) {
   stringstream ss;
@@ -232,10 +233,9 @@ bool Instr::populate(string temp, bool& main) {
       def.push_back(make_pair(REG, num));
       use.push_back(get_2op(instr));
 
-      if (i == 0) {
-        opcode = def_reg2[i];
-        opcode_num = opcode_count;
-      }
+      opcode = def_reg2[i];
+      opcode_num = opcode_count;
+
       return instr_follow;
     }
     opcode_count++;
@@ -246,8 +246,13 @@ bool Instr::populate(string temp, bool& main) {
     if (found != std::string::npos) {
       use.push_back(get_1op(instr));
       use.push_back(get_2op(instr));
+
+      opcode = def_reg2[i];
+      opcode_num = opcode_count;
+
       return instr_follow;
     }
+    opcode_count++;
   }
   // type 5, 0 def + 1 use
   for(int i=0; i<DEF_REG5_SIZE; i++) {
@@ -255,29 +260,48 @@ bool Instr::populate(string temp, bool& main) {
     if (found != std::string::npos) {
       use.push_back(get_1op(instr));
       def.push_back(get_2op(instr));
+
+      opcode = def_reg2[i];
+      opcode_num = opcode_count;
+
       return instr_follow;
     }
+    opcode_count++;
   }
   // type 6, 0 def + 1 use
   for(int i=0; i<DEF_REG6_SIZE; i++) {
     found = instr.find(def_reg6[i]);
     if (found != std::string::npos) {
       use.push_back(get_2op(instr));
+
+      opcode = def_reg2[i];
+      opcode_num = opcode_count;
+
       return instr_follow;
     }
+    opcode_count++;
   }
   // type 4, 0 def + 1 use
   for(int i=0; i<DEF_REG4_SIZE; i++) {
     found = instr.find(def_reg4[i]);
     if (found != std::string::npos) {
       use.push_back(get_1op(instr));
+
+      opcode = def_reg2[i];
+      opcode_num = opcode_count;
     }
+    opcode_count++;
   }
   // check end of bb
   for(int i=0; i<BB_END_SIZE; i++) {
     found = instr.find(bb_end[i]);
-    if (found != std::string::npos)
+    if (found != std::string::npos) {
+      opcode = def_reg2[i];
+      opcode_num = opcode_count;
+
       return 0;
+    }
+    opcode_count++;
   }
   return instr_follow;
 }
