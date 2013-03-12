@@ -247,7 +247,7 @@ bool Instr::populate(string temp, bool& main) {
       use.push_back(get_1op(instr));
       use.push_back(get_2op(instr));
 
-      opcode = def_reg2[i];
+      opcode = def_reg3[i];
       opcode_num = opcode_count;
 
       return instr_follow;
@@ -261,7 +261,7 @@ bool Instr::populate(string temp, bool& main) {
       use.push_back(get_1op(instr));
       def.push_back(get_2op(instr));
 
-      opcode = def_reg2[i];
+      opcode = def_reg5[i];
       opcode_num = opcode_count;
 
       return instr_follow;
@@ -274,7 +274,7 @@ bool Instr::populate(string temp, bool& main) {
     if (found != std::string::npos) {
       use.push_back(get_2op(instr));
 
-      opcode = def_reg2[i];
+      opcode = def_reg6[i];
       opcode_num = opcode_count;
 
       return instr_follow;
@@ -287,7 +287,7 @@ bool Instr::populate(string temp, bool& main) {
     if (found != std::string::npos) {
       use.push_back(get_1op(instr));
 
-      opcode = def_reg2[i];
+      opcode = def_reg4[i];
       opcode_num = opcode_count;
     }
     opcode_count++;

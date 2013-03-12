@@ -20,7 +20,7 @@ void main()
       a = a+5;
     }
     else {
-      a = 1-m;
+      //a = 1-m;
     }
     a = 1-m;
   }
