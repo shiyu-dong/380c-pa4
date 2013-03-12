@@ -523,7 +523,43 @@ void Function::rewrite() {
         // add to new_bb
         new_bb[make_pair(i->first.first, i->first.second)] = this_bb;
       }
-      // TODO: delete goes here
+
+      // eliminate(all children of child_of_edge, parent_of_edge, exp, num)
+
+      // eliminate(child_bb, parent_bb, exp, num) {
+      //  if child_bb->delete has the exp {
+      //    find the instruction uses the same exp
+      //    change it to move
+      //   fix_up(child_bb, parent_bb, exp, num)
+      //  }
+      //
+      //  if child_bb->dee NOT have exp {
+      //    return;
+      //  }
+      //  else
+      //    eliminate(child_bb->children, parent_bb, exp, num);
+      // }
+      //
+      // fix_up(bb, parent_bb, exp, num) {
+      //  if (bb == parent_bb || bb->has_child(parent_bb) || bb->has_fixed_exp(exp))
+      //    return;
+      //  else if (bb.parent_p.size() > 1)
+      //    go to its parents
+      //    get the first position of the all instructions
+      //    insert exp with instruction number num
+      //    return;
+      //  else
+      //     fix_up(bb->parent, parent_bb, exp, num);
+      //   
+      // }
+      //
+      // go through all bbs from the child of the edge
+      // if exp is in delete in this bb
+        // change the cooresponding instruction to move
+        // go up to find if any bb has more than one predecessors
+          // stop going up if a node is parent of/the insert edge
+        // stop if a bb has the same expression in kill set
+      //
     } // end of each insert in an edge
   } // end of all edges
 
