@@ -49,6 +49,21 @@ struct Exp {
       return use.back().second < e.use.back().second;
   }
 
+  inline bool operator==(const Exp& e) const {
+    if (opcode_num != e.opcode_num)
+      return 0;
+    else if (use.front().first != e.use.front().first)
+      return 0;
+    else if (use.front().second != e.use.front().second)
+      return 0;
+    else if (use.size() != e.use.size()) 
+      return 0;
+    else if (use.back().first != e.use.back().first)
+      return 0;
+    else
+      return use.back().second == e.use.back().second;
+  }
+
   Exp(int _opcode_num, int _instr_num, list<pair<OpType, int> > _use, string instr) :
     opcode_num(_opcode_num), instr_num(_instr_num), use(_use) {
       int found = instr.find(':');
@@ -95,6 +110,8 @@ struct BasicBlock {
 
   set<Exp> LATER_IN;
   set<Exp> DELETE;
+
+  set<Exp> fixed_exp;
 
   // temporary variable
   set<pair<OpType, int> > KILL_t;
@@ -157,6 +174,8 @@ struct Function {
   void compute_INSERT();
   void compute_DELETE();
   void rewrite();
+  void eliminate(BasicBlock*, BasicBlock*, Exp, int, set<BasicBlock*>&);
+  void fixup(BasicBlock*, BasicBlock*, Exp, int, set<BasicBlock*>&);
 
   set<Exp> Intersect(const set<Exp>*, const set<Exp>*);
   set<Exp> Union(const set<Exp>*, const set<Exp>*);

@@ -8,7 +8,7 @@ set<int> br_target;
 bool main_next = 0;
 
 string opcode[] = {"add", "mul", "cmpeq", "sub", "div", "mod", "cmple", "cmplt", "neg",
-                   "load", "store", "INVALID", "INVALID", "move", "write", "param", "br", "ret", "call", "blbc", "blbs"};
+                   "load", "store", "INVALID", "INVALID", "move", "write", "param", "br", "ret", "call", "blbc", "blbs", "nop"};
 
 
 //#define PRE_OPCODE_RANGE 9 //(3+5+1)
@@ -318,6 +318,7 @@ bool BasicBlock::populate() {
   children.clear();
   children_p.clear();
   parent_p.clear();
+  fixed_exp.clear();
   branch_target = -1;
 
   // get a basic block
