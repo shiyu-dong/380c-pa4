@@ -1,230 +1,34 @@
     instr 1: nop
-    instr 2: enter 16
-    instr 3: add b#24 c#16
-    instr 4: add b#24 c#16
-    instr 5: add (3) (4)
-    instr 6: add b#24 c#16
-    instr 7: add b#24 c#16
-    instr 8: add (6) (7)
-    instr 9: add (5) (8)
-    instr 10: add b#24 c#16
-    instr 11: add b#24 c#16
-    instr 12: add (10) (11)
-    instr 13: add b#24 c#16
-    instr 14: add b#24 c#16
-    instr 15: add (13) (14)
-    instr 16: add (12) (15)
-    instr 17: add (9) (16)
-    instr 18: move (17) a#-8
-    instr 19: write a#-8
-    instr 20: wrl
-    instr 21: mul 0 80
-    instr 22: add array_base#31808 GP
-    instr 23: add (22) (21)
-    instr 24: mul 3 8
-    instr 25: add (23) (24)
-    instr 26: store a#-8 (25)
-    instr 27: mul 0 80
-    instr 28: add array_base#31808 GP
-    instr 29: add (28) (27)
-    instr 30: mul 4 8
-    instr 31: add (29) (30)
-    instr 32: mul 0 80
-    instr 33: add array_base#31808 GP
-    instr 34: add (33) (32)
-    instr 35: mul 3 8
-    instr 36: add (34) (35)
-    instr 37: load (36)
-    instr 38: add a#-8 (37)
-    instr 39: store (38) (31)
-    instr 40: mul 0 80
-    instr 41: add array_base#31808 GP
-    instr 42: add (41) (40)
-    instr 43: mul 5 8
-    instr 44: add (42) (43)
-    instr 45: mul 0 80
-    instr 46: add array_base#31808 GP
-    instr 47: add (46) (45)
-    instr 48: mul 4 8
-    instr 49: add (47) (48)
-    instr 50: load (49)
-    instr 51: add a#-8 (50)
-    instr 52: store (51) (44)
-    instr 53: mul 0 80
-    instr 54: add array_base#31808 GP
-    instr 55: add (54) (53)
-    instr 56: mul 3 8
-    instr 57: add (55) (56)
-    instr 58: mul 0 80
-    instr 59: add array_base#31808 GP
-    instr 60: add (59) (58)
-    instr 61: mul 4 8
-    instr 62: add (60) (61)
-    instr 63: load (57)
-    instr 64: load (62)
-    instr 65: add (63) (64)
-    instr 66: mul 0 80
-    instr 67: add array_base#31808 GP
-    instr 68: add (67) (66)
-    instr 69: mul 5 8
-    instr 70: add (68) (69)
-    instr 71: load (70)
-    instr 72: add (65) (71)
-    instr 73: add a#-8 (72)
-    instr 74: move (73) a#-8
-    instr 75: write a#-8
-    instr 76: move 0 i#-16
-    instr 77: mul i#-16 80
-    instr 78: add array_base#31808 GP
-    instr 79: add (78) (77)
-    instr 80: mul 3 8
-    instr 81: add (79) (80)
-    instr 82: mul i#-16 80
-    instr 83: add array_base#31808 GP
-    instr 84: add (83) (82)
-    instr 85: mul 4 8
-    instr 86: add (84) (85)
-    instr 87: load (81)
-    instr 88: load (86)
-    instr 89: add (87) (88)
-    instr 90: add a#-8 (89)
-    instr 91: move (90) a#-8
-    instr 92: write a#-8
-    instr 93: wrl
-    instr 94: ret 16
-    instr 95: enter 8
-    instr 96: add a#32 b#24
-    instr 97: add (96) c#16
-    instr 98: move (97) d#-8
-    instr 99: cmpeq c#16 0
-    instr 100: blbc (99) [105]
-    instr 101: add a#32 b#24
-    instr 102: add (101) 1
-    instr 103: write (102)
-    instr 104: br [123]
-    instr 105: add a#32 b#24
-    instr 106: add (105) 2
-    instr 107: write (106)
-    instr 108: cmplt a#32 b#24
-    instr 109: blbc (108) [118]
-    instr 110: add a#32 b#24
-    instr 111: move (110) a#32
-    instr 112: add a#32 b#24
-    instr 113: move (112) b#24
-    instr 114: add a#32 b#24
-    instr 115: move (114) c#16
-    instr 116: write c#16
-    instr 117: br [120]
-    instr 118: add a#32 b#24
-    instr 119: write (118)
-    instr 120: add a#32 b#24
-    instr 121: add (120) 3
-    instr 122: write (121)
-    instr 123: ret 24
-    instr 124: enter 0
-    instr 125: cmplt b#32 c#24
-    instr 126: blbc (125) [129]
-    instr 127: add a#40 c#24
-    instr 128: move (127) a#40
-    instr 129: add a#40 c#24
-    instr 130: cmplt d#16 (129)
-    instr 131: blbc (130) [138]
-    instr 132: cmplt b#32 c#24
-    instr 133: blbc (132) [136]
-    instr 134: write a#40
-    instr 135: br [138]
-    instr 136: add a#40 c#24
-    instr 137: write (136)
-    instr 138: ret 32
-    instr 139: enter 16
-    instr 140: move 0 i#-8
-    instr 141: move 0 sum#-16
-    instr 142: cmplt i#-8 a#16
-    instr 143: blbc (142) [149]
-    instr 144: add sum#-16 i#-8
-    instr 145: move (144) sum#-16
-    instr 146: add i#-8 1
-    instr 147: move (146) i#-8
-    instr 148: br [142]
-    instr 149: write sum#-16
-    instr 150: ret 8
-    instr 151: enter 96
-    instr 152: move 0 i#-8
-    instr 153: move 0 sum#-16
-    instr 154: cmplt i#-8 a#16
-    instr 155: blbc (154) [167]
-    instr 156: add sum#-16 i#-8
-    instr 157: move (156) sum#-16
-    instr 158: add i#-8 1
-    instr 159: move (158) i#-8
-    instr 160: cmplt i#-8 10
-    instr 161: blbc (160) [166]
-    instr 162: mul i#-8 8
-    instr 163: add array_base#-96 FP
-    instr 164: add (163) (162)
-    instr 165: store sum#-16 (164)
-    instr 166: br [154]
-    instr 167: write sum#-16
-    instr 168: ret 8
-    instr 169: enter 8
-    instr 170: add b#24 c#16
-    instr 171: move (170) a#-8
-    instr 172: cmplt a#-8 100
-    instr 173: blbc (172) [203]
-    instr 174: add b#24 c#16
-    instr 175: add b#24 c#16
-    instr 176: add (174) (175)
-    instr 177: add b#24 c#16
-    instr 178: add b#24 c#16
-    instr 179: add (177) (178)
-    instr 180: add (176) (179)
-    instr 181: add b#24 c#16
-    instr 182: add b#24 c#16
-    instr 183: add (181) (182)
-    instr 184: add b#24 c#16
-    instr 185: add b#24 c#16
-    instr 186: add (184) (185)
-    instr 187: add (183) (186)
-    instr 188: add (180) (187)
-    instr 189: move (188) a#-8
-    instr 190: cmplt a#-8 75
-    instr 191: blbc (190) [196]
-    instr 192: add b#24 c#16
-    instr 193: add a#-8 (192)
-    instr 194: move (193) a#-8
-    instr 195: br [199]
-    instr 196: add b#24 c#16
-    instr 197: sub a#-8 (196)
-    instr 198: move (197) a#-8
-    instr 199: write a#-8
-    instr 200: add a#-8 a#-8
-    instr 201: move (200) a#-8
-    instr 202: br [172]
-    instr 203: ret 16
-    instr 204: enter 8
-    instr 205: move 0 a#-8
-    instr 206: cmplt a#-8 70
-    instr 207: blbc (206) [214]
-    instr 208: cmplt a#-8 75
-    instr 209: blbc (208) [213]
-    instr 210: add b#24 c#16
-    instr 211: add a#-8 (210)
-    instr 212: move (211) a#-8
-    instr 213: br [206]
-    instr 214: add b#24 c#16
-    instr 215: add a#-8 (214)
-    instr 216: move (215) a#-8
-    instr 217: cmplt a#-8 150
-    instr 218: blbc (217) [225]
-    instr 219: cmplt a#-8 160
-    instr 220: blbc (219) [224]
-    instr 221: add b#24 c#16
-    instr 222: add a#-8 (221)
-    instr 223: move (222) a#-8
-    instr 224: br [217]
-    instr 225: write a#-8
-    instr 226: ret 16
-    instr 227: entrypc
-    instr 228: enter 0
-    instr 229: ret 0
-    instr 230: nop
+    instr 2: enter 8
+    instr 3: add a#32 b#24
+    instr 4: add (3) c#16
+    instr 5: move (4) d#-8
+    instr 6: cmpeq c#16 0
+    instr 7: blbc (6) [12]
+    instr 8: add a#32 b#24
+    instr 9: add (8) 1
+    instr 10: write (9)
+    instr 11: br [30]
+    instr 12: add a#32 b#24
+    instr 13: add (12) 2
+    instr 14: write (13)
+    instr 15: cmplt a#32 b#24
+    instr 16: blbc (15) [25]
+    instr 17: add a#32 b#24
+    instr 18: move (17) a#32
+    instr 19: add a#32 b#24
+    instr 20: move (19) b#24
+    instr 21: add a#32 b#24
+    instr 22: move (21) c#16
+    instr 23: write c#16
+    instr 24: br [27]
+    instr 25: add a#32 b#24
+    instr 26: write (25)
+    instr 27: add a#32 b#24
+    instr 28: add (27) 3
+    instr 29: write (28)
+    instr 30: ret 24
+    instr 31: entrypc
+    instr 32: enter 0
+    instr 33: ret 0
+    instr 34: nop
