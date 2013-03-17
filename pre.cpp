@@ -456,6 +456,7 @@ void Function::rewrite() {
   map<pair<int, int>, BasicBlock*> new_bb;
   // start new instruction number backwards
   int new_instr_num = 65535;
+  int new_bb_num = 62000;
 
   // for each edge
   for(map<pair<int, int>, Edge*>::iterator i=edge.begin();
@@ -539,11 +540,22 @@ void Function::rewrite() {
       // more than one successors and predecessors
       else {
         BasicBlock* this_bb = new BasicBlock;
-        this_bb->num = new_instr->num;
+        this_bb->num = new_bb_num;
+        new_bb_num--;
         this_bb->main = 0;
         // always insert this instruction at the very beginning
         this_bb->instr.push_front(new_instr);
         this_bb->num = new_instr->num;
+
+        Instr* nop_instr = new Instr;
+        nop_instr->num = this_bb->num;
+        nop_instr->instr = "    instr ";
+        nop_instr->instr.append(itoa(this_bb->num));
+        nop_instr->instr.append(": nop");
+        nop_instr->opcode_num = 21;
+        nop_instr->opcode = "nop";
+        this_bb->instr.push_front(nop_instr);
+
         // reconnect at the end of this function
         // add to new_bb
         new_bb[make_pair(i->first.first, i->first.second)] = this_bb;

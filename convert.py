@@ -6,6 +6,8 @@ operators = ['-', '/', '%', '<=', '+', '*', '==', '<']
 
 arith1 = ['neg']
 
+targets = []
+
 local_size = 0;
 
 # get operand
@@ -111,7 +113,7 @@ for line in sys.stdin:
     continue
 
 #print label for next instruction
-  if sline[2] != 'enter' and sline[2] != 'entrypc':
+  if sline[2] != 'enter' and sline[2] != 'entrypc' and int(sline[1]) < 62000:
     print 'instr_' + sline[1] + ':;\n\t',
 
 #function start
@@ -153,7 +155,11 @@ for line in sys.stdin:
 #    print ';\n',
 
   elif sline[2] in arith:
-    print 'long r' + sline[1] + ' =',
+    if not sline[1] in targets:
+        sys.stdout.write('long ')
+        targets.append(sline[1])
+
+    print 'r'+sline[1] + ' =',
     t = getOperand(3, sline, 0)
     print operators[arith.index(sline[2])],
     if (t < 0):
@@ -163,7 +169,11 @@ for line in sys.stdin:
     print ';\n',
 
   elif sline[2] in arith1:
-    print 'long r' + sline[1] + ' =',
+    if not sline[1] in targets:
+        sys.stdout.write('long ')
+        targets.append(sline[1])
+
+    print 'r'+sline[1] + ' =',
     t = getOperand(3, sline, 0)
     print ' * (-1);\n',
 
@@ -191,6 +201,10 @@ for line in sys.stdin:
     getOperand(3, sline, 0)
     print ';\n',
   elif sline[2] == 'move':
+    temp = sline[4].strip('()')
+    if (temp.isdigit()) and (temp == sline[1]):
+        print 'long',
+
     t = getStart(3, sline);
     getOperand(t, sline, 0)
     print ' = ',
