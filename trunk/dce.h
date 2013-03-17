@@ -174,8 +174,15 @@ struct Function {
   void compute_INSERT();
   void compute_DELETE();
   void rewrite();
+
+  int find_ref(BasicBlock*&, const Exp&, set<BasicBlock*>&);
+  int find_ref_helper(BasicBlock* const &, const Exp&, set<BasicBlock*>&);
+
+  void fix_up(BasicBlock*&, const Exp&, int, set<BasicBlock*>&);
+  void fix_up_helper(BasicBlock* const &, const Exp&, int, set<BasicBlock*>&);
+
+
   void eliminate(BasicBlock*, BasicBlock*, Exp, int, set<BasicBlock*>&);
-  void fixup(BasicBlock*, BasicBlock*, Exp, int, set<BasicBlock*>&);
 
   set<Exp> Intersect(const set<Exp>*, const set<Exp>*);
   set<Exp> Union(const set<Exp>*, const set<Exp>*);

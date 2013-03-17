@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 extern string opcode[];
+int new_instr_num;
 
 inline string itoa(int i) {
   stringstream ss;
@@ -348,13 +349,13 @@ void Function::compute_EARLIEST() {
   }
 
   //debug
-  //for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
-  //    i != edge.end(); i++) {
-  //    cout << "EARLIEST edge: " << i->second->parent->num << " -> " <<
-  //      i->second->child->num << endl;
-  //    printSet(i->second->EARLIEST);
-  //}
-  //cout << endl;
+  for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
+      i != edge.end(); i++) {
+      cout << "EARLIEST edge: " << i->second->parent->num << " -> " <<
+        i->second->child->num << endl;
+      printSet(i->second->EARLIEST);
+  }
+  cout << endl;
 }
 
 void Function::compute_LATER() {
@@ -425,13 +426,13 @@ void Function::compute_INSERT() {
   }
 
   //debug
-  //for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
-  //    i != edge.end(); i++) {
-  //    cout << "INSERT edge: " << i->second->parent->num << " -> " <<
-  //      i->second->child->num << endl;
-  //    printSet(i->second->INSERT);
-  //}
-  //cout << endl;
+  for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
+      i != edge.end(); i++) {
+      cout << "INSERT edge: " << i->second->parent->num << " -> " <<
+        i->second->child->num << endl;
+      printSet(i->second->INSERT);
+  }
+  cout << endl;
 }
 
 void Function::compute_DELETE() {
@@ -443,19 +444,19 @@ void Function::compute_DELETE() {
   }
 
   //debug
-  //cout<<"DELETE func: "<<bb[0]->num<<"\n";
-  //for(int i=0; i<bb.size(); i++) {
-  //  cout<<"BB num: "<<bb[i]->num<<endl;
-  //  printSet(bb[i]->DELETE);
-  //}
-  //cout << endl;
+  cout<<"DELETE func: "<<bb[0]->num<<"\n";
+  for(int i=0; i<bb.size(); i++) {
+    cout<<"BB num: "<<bb[i]->num<<endl;
+    printSet(bb[i]->DELETE);
+  }
+  cout << endl;
 }
 
 void Function::rewrite() {
   // remember number of new bb that I inserted
   map<pair<int, int>, BasicBlock*> new_bb;
   // start new instruction number backwards
-  int new_instr_num = 65535;
+  new_instr_num = 65535;
   int new_bb_num = 62000;
 
   // for each edge
@@ -504,6 +505,11 @@ void Function::rewrite() {
         BasicBlock* child = i->second->child;
         int old_instr_num;
 
+        // add a branch with the instruction number
+        // as the same as the number of the 1st instruction originally
+        // add new instruction after the nop
+        // In this way, no need to change branch dest of parent
+
         // change the first instruction's number
         Instr* this_instr = child->instr.front();
         old_instr_num = this_instr->num;
@@ -514,7 +520,6 @@ void Function::rewrite() {
         this_instr->instr = "    instr ";
         this_instr->instr.append(itoa(new_instr_num+1));
         this_instr->instr.append(orig_exp);
-
 
         // always insert this instruction at the very beginning
         child->instr.push_front(new_instr);
@@ -547,6 +552,7 @@ void Function::rewrite() {
         this_bb->instr.push_front(new_instr);
         this_bb->num = new_instr->num;
 
+        // TODO: do we still need nop here???
         Instr* nop_instr = new Instr;
         nop_instr->num = this_bb->num;
         nop_instr->instr = "    instr ";
@@ -561,17 +567,6 @@ void Function::rewrite() {
         new_bb[make_pair(i->first.first, i->first.second)] = this_bb;
       }
 
-      set<BasicBlock*> bb_visited;
-      //bb_visited.insert(i->second->parent);
-      eliminate(i->second->child, i->second->parent, *j, new_instr_num+2, bb_visited);
-
-      // go through all bbs from the child of the edge
-      // if exp is in delete in this bb
-        // change the cooresponding instruction to move
-        // go up to find if any bb has more than one predecessors
-          // stop going up if a node is parent of/the insert edge
-        // stop if a bb has the same expression in kill set
-      //
     } // end of each insert in an edge
   } // end of all edges
 
@@ -631,71 +626,98 @@ void Function::rewrite() {
       bb.insert(j, this_bb);
     }
   } // end of reconnect
-}
-
-      // fix_up(bb, parent_bb, exp, num, bb_visited) {
-      //  if (bb == parent_bb || bb->has_child(parent_bb) || bb->has_fixed_exp(exp))
-      //    return;
-      //  else if (bb.parent_p.size() > 1)
-      //    go to bb's parent that is not in bb_visited
-      //    get the last position of the all instructions
-      //    insert exp with instruction number num
-      //    return;
-      //  else
-      //     fix_up(bb->parent, parent_bb, exp, num);
-      // }
-      //
-      // eliminate(child_bb, parent_bb, exp, num, bb_visited) {
-      //  update bb_visited
-      //  if child_bb->delete has the exp {
-      //    find the instruction uses the same exp
-      //    change it to move
-      //    fix_up(child_bb->parent, parent_bb, exp, num, bb_visited)
-      //  }
-      //
-
-void Function::fixup(BasicBlock* bb, BasicBlock* starter, Exp exp, int insert_num, set<BasicBlock*>& bb_visited) {
-  // if bb is starter, or bb is begin of the program
-  // or bb has been fixed for this exp
 
   //debug
-  // cout<<"fixing: "<<bb->num<<endl;
-  if (bb == starter || bb->parent_p.size() == 0 || 
-      bb->fixed_exp.find(exp) != bb->fixed_exp.end() ) {
-    return;
-  }
+  cout<<"@@@"<<endl;
+  print_instr();
+  cout<<"@@@"<<endl;
+  print_CFG();
+  cout<<"@@@"<<endl;
 
-  // if bb has multiple parents
-  else if (bb->parent_p.size() > 1) {
+  // for each delete exp in each bb,
+  // find cooresponding instruction
+  for(int i=0; i<bb.size(); i++) {
+    for(set<Exp>::iterator j = bb[i]->DELETE.begin();
+        j != bb[i]->DELETE.end(); j++) {
+      // find cooresponding instruction
+      // for the delete
+      set<BasicBlock*> visited;
+      visited.clear();
+      int ref_num = find_ref(bb[i], *j, visited);
 
-    // find the parent that is not visited
-    set<BasicBlock*>::iterator i = bb->parent_p.begin();
-    while(i != bb->parent_p.end() ) {
+      assert(ref_num != -1);
 
-      while(bb_visited.find(*i) != bb_visited.end()) {
-        i++;
-        if (i == bb->parent_p.end()) {
-          return;
+      // find the instruction to be deleted,
+      // change it to move
+      for(list<Instr*>::iterator k = bb[i]->instr.begin();
+          k != bb[i]->instr.end(); k++) {
+        if ((*k)->opcode_num < PRE_OPCODE_RANGE && (*k)->opcode_num != -1) {
+          Exp t((*k)->opcode_num, (*k)->num, (*k)->use, (*k)->opcode);
+          if (t == *j) {
+            // change it to move
+            (*k)->use.clear();
+            (*k)->use.push_back(std::make_pair(REG, ref_num));
+            (*k)->def.clear();
+            (*k)->def.push_back(std::make_pair(REG, (*k)->num));
+            (*k)->opcode_num = 11;
+            (*k)->opcode = "move";
+            (*k)->instr.clear();
+            (*k)->instr += MakeMove((*k)->num, ref_num, (*k)->num);
+          }
         }
       }
 
-      // get the bb that needs to be inserted
-      BasicBlock* this_bb = *i;
-      this_bb->fixed_exp.insert(exp);
-      // create a new instruction
-      Instr* new_instr = new Instr;
-      new_instr->num = insert_num;
-      new_instr->use = exp.use;
-      new_instr->def.push_back(make_pair(REG, insert_num));
-      new_instr->instr.clear();
-      new_instr->instr.append("    instr ");
-      new_instr->instr.append(itoa(insert_num));
-      new_instr->instr.append(": ");
-      new_instr->instr.append(exp.exp);
-      new_instr->opcode_num = exp.opcode_num;
-      new_instr->opcode = opcode[new_instr->opcode_num];
+      // search up in cfg to make sure
+      // every path from start to this point has cooresponding expression calculated
+      visited.clear();
+      fix_up(bb[i], *j, ref_num, visited);
 
-      // insert the new instruction
+    } // end of one delete expression
+  } // end of delete exp in each bb
+}
+
+void Function::fix_up(BasicBlock*& this_bb, const Exp& exp, int ref_num, set<BasicBlock*>& visited) {
+  visited.insert(this_bb);
+
+  for(set<BasicBlock*>::iterator it = this_bb->parent_p.begin();
+      it != this_bb->parent_p.end(); it++) {
+    fix_up_helper(*it, exp, ref_num, visited);
+  }
+}
+
+void Function::fix_up_helper(BasicBlock* const& this_bb, const Exp& exp, int ref_num, set<BasicBlock*>& visited) {
+  visited.insert(this_bb);
+
+  // for each instruction in this bb
+  for(list<Instr*>::iterator it = this_bb->instr.begin();
+      it != this_bb->instr.end(); it++) {
+    // if this bb has the exact same express 
+    // thus has the same ref_num
+    if ((*it)->num == ref_num) {
+      return;
+    }
+
+    if ((*it)->opcode_num >= PRE_OPCODE_RANGE && (*it)->opcode_num != -1)
+      continue;
+    
+    Exp t((*it)->opcode_num, (*it)->num, (*it)->use, (*it)->instr);
+    // if this bb use the same expression
+    // but doesn't have the same ref num
+    if (t == exp) {
+      int that_num = (*it)->num;
+
+      Instr* new_move = new Instr;
+      new_move->num = new_instr_num;
+      new_move->use.push_back(make_pair(REG, that_num));
+      new_move->def.push_back(make_pair(REG, ref_num));
+      new_move->opcode_num = 11;
+      new_move->opcode = "move";
+      new_move->instr.clear();
+      new_move->instr += MakeMove(new_instr_num, that_num, ref_num);
+
+      new_instr_num--;
+
+      // insert the newly created instructions to the bottom of the bb
       int last_instr = this_bb->instr.back()->num;
       // check if last instruction is a branch
       if (last_instr == 16 || last_instr == 19 || last_instr == 20) {
@@ -703,25 +725,129 @@ void Function::fixup(BasicBlock* bb, BasicBlock* starter, Exp exp, int insert_nu
         // need to insert it to second last pos
         list<Instr*>::iterator it = this_bb->instr.end();
         it--;
-        this_bb->instr.insert(it, new_instr);
+        this_bb->instr.insert(it, new_move);
       }
       else {
-        // insert the instruction to the end, or the last second position
-        // in parent basic block
-        this_bb->instr.push_back(new_instr);
+        // insert at the bottom of the bb
+        list<Instr*>::iterator it = this_bb->instr.end();
+        this_bb->instr.insert(it, new_move);
       }
-      
-      i++;
+      return;
     }
+  }
 
+  // if this bb kills exp
+  if (this_bb->KILL.find(exp) != this_bb->KILL.end() ) {
+    // calculate exp at the end of this bb
+    Instr* new_instr = new Instr;
+    new_instr->num = new_instr_num;
+    new_instr->use = exp.use;
+    new_instr->def.push_back(make_pair(REG, new_instr_num));
+    new_instr->instr.clear();
+    new_instr->instr.append("    instr ");
+    new_instr->instr.append(itoa(new_instr_num));
+    new_instr->instr.append(": ");
+    new_instr->instr.append(exp.exp);
+    new_instr->opcode_num = exp.opcode_num;
+    new_instr->opcode = opcode[new_instr->opcode_num];
+
+    new_instr_num--;
+
+    // move the new result to REG ref_num
+    Instr* new_move = new Instr;
+    new_move->num = new_instr_num;
+    new_move->use.push_back(make_pair(REG, new_instr_num+1));
+    new_move->def.push_back(make_pair(REG, ref_num));
+    new_move->opcode_num = 11;
+    new_move->opcode = "move";
+    new_move->instr.clear();
+    new_move->instr += MakeMove(new_instr_num, new_instr_num+1, ref_num);
+
+    new_instr_num--;
+
+    // insert the newly created instructions to the bottom of the bb
+    int last_instr = this_bb->instr.back()->num;
+    // check if last instruction is a branch
+    if (last_instr == 16 || last_instr == 19 || last_instr == 20) {
+      // if last instr is a branch,
+      // need to insert it to second last pos
+      list<Instr*>::iterator it = this_bb->instr.end();
+      it--;
+      this_bb->instr.insert(it, new_instr);
+
+      it = this_bb->instr.end();
+      it--;
+      this_bb->instr.insert(it, new_move);
+    }
+    else {
+      // insert at the bottom of the bb
+      list<Instr*>::iterator it = this_bb->instr.end();
+      this_bb->instr.insert(it, new_instr);
+
+      it = this_bb->instr.end();
+      this_bb->instr.insert(it, new_move);
+    }
     return;
   }
 
-  else {
-    // keep going up
-    if (bb_visited.find(*bb->parent_p.begin()) == bb_visited.end() )
-      fixup((*bb->parent_p.begin()), starter, exp, insert_num, bb_visited);
+  // if reach start, fail
+  if (this_bb->parent_p.size() == 0) {
+    assert("fix_up reach start" && 0);
   }
+  else {
+    for(set<BasicBlock*>::iterator it = this_bb->parent_p.begin();
+        it != this_bb->parent_p.end(); it++) {
+      if (visited.find(*it) == visited.end()) {
+        fix_up_helper(*it, exp, ref_num, visited);
+      }
+    }
+  }
+}
+
+int Function::find_ref(BasicBlock*& this_bb, const Exp& exp, set<BasicBlock*>& visited) {
+  int ret;
+
+  visited.insert(this_bb);
+
+  for(set<BasicBlock*>::iterator it = this_bb->parent_p.begin();
+      it != this_bb->parent_p.end(); it++) {
+    ret = find_ref_helper(*it, exp, visited);
+    if (ret != -1)
+      return ret;
+  }
+
+  return -1;
+}
+
+int Function::find_ref_helper(BasicBlock* const& this_bb, const Exp& exp, set<BasicBlock*>& visited) {
+  visited.insert(this_bb);
+
+  // go through each instruction of the bb
+  for(list<Instr*>::iterator it = this_bb->instr.begin();
+      it != this_bb->instr.end(); it++) {
+    if ((*it)->opcode_num < PRE_OPCODE_RANGE && (*it)->opcode_num != -1) {
+      Exp t((*it)->opcode_num, (*it)->num, (*it)->use, (*it)->opcode);
+      if (t == exp) {
+        return (*it)->num;
+      }
+    }
+  }
+
+  // exp not found in this bb
+  // check all its parents
+  if (this_bb->parent_p.size() == 0) {
+    return -1;
+  }
+  for(set<BasicBlock*>::iterator it = this_bb->parent_p.begin();
+      it != this_bb->parent_p.end(); it++) {
+    if (visited.find(*it) == visited.end()) {
+      int ret = find_ref_helper(*it, exp, visited);
+      if (ret != -1)
+        return ret;
+    }
+  }
+
+  return -1;
 }
 
 void Function::eliminate(BasicBlock* child, BasicBlock* starter, Exp exp, int insert_num, set<BasicBlock*>& bb_visited) {
@@ -740,26 +866,28 @@ void Function::eliminate(BasicBlock* child, BasicBlock* starter, Exp exp, int in
     // find the one instruction uses the same exp
     for(list<Instr*>::iterator it = child->instr.begin();
         it != child->instr.end(); it++) {
-      Exp t((*it)->opcode_num, (*it)->num, (*it)->use, (*it)->opcode);
-      if (t == exp) {
-        // change it to move
-        (*it)->use.clear();
-        (*it)->use.push_back(std::make_pair(REG, insert_num));
-        (*it)->def.clear();
-        (*it)->def.push_back(std::make_pair(REG, (*it)->num));
-        (*it)->opcode_num = 11;
-        (*it)->opcode = "move";
-        (*it)->instr.clear();
-        (*it)->instr += MakeMove((*it)->num, insert_num, (*it)->num);
+      if ((*it)->opcode_num < PRE_OPCODE_RANGE && (*it)->opcode_num != -1) {
+        Exp t((*it)->opcode_num, (*it)->num, (*it)->use, (*it)->opcode);
+        if (t == exp) {
+          // change it to move
+          (*it)->use.clear();
+          (*it)->use.push_back(std::make_pair(REG, insert_num));
+          (*it)->def.clear();
+          (*it)->def.push_back(std::make_pair(REG, (*it)->num));
+          (*it)->opcode_num = 11;
+          (*it)->opcode = "move";
+          (*it)->instr.clear();
+          (*it)->instr += MakeMove((*it)->num, insert_num, (*it)->num);
 
-        // for parents that are not in bb_visited
-        //for(set<BasicBlock*>::iterator j = child->parent_p.begin();
-        //    j != child->parent_p.end(); j++) {
-        //  if (bb_visited.find(*j) == bb_visited.end()) {
-        //    fixup(*j, starter, exp, insert_num, bb_visited);
-        //  }
-        //}
-        fixup(child, starter, exp, insert_num, bb_visited);
+          // for parents that are not in bb_visited
+          //for(set<BasicBlock*>::iterator j = child->parent_p.begin();
+          //    j != child->parent_p.end(); j++) {
+          //  if (bb_visited.find(*j) == bb_visited.end()) {
+          //    fixup(*j, starter, exp, insert_num, bb_visited);
+          //  }
+          //}
+          //fixup(child, starter, exp, insert_num, bb_visited);
+        }
       }
     }
   }
