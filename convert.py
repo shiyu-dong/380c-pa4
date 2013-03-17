@@ -135,6 +135,7 @@ for line in sys.stdin:
 #function return
   elif sline[2] == 'ret':
     print 'return;\n}\n',
+    targets = []
 
 #arithmatic
 #  elif sline[2] in arith:
