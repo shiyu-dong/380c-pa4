@@ -984,24 +984,25 @@ int Function::find_up_exp(Exp exp, BasicBlock* this_bb) {
 int Function::find_up_exp_helper(Exp exp, BasicBlock* this_bb) {
   int parent_index, this_index;
 
-  if (this_bb->KILL.find(exp) != this_bb->KILL.end()) {
-    return -1;
-  }
-  else {
+  //if (this_bb->KILL.find(exp) != this_bb->KILL.end()) {
+  //  return -1;
+  //}
+  //else {
     for(list<Instr*>::iterator it = this_bb->instr.begin();
         it != this_bb->instr.end(); it++) {
       if ((*it)->opcode_num >= PRE_OPCODE_RANGE || (*it)->opcode_num == -1)
         continue;
 
       Exp t((*it)->opcode_num, (*it)->num, (*it)->use, (*it)->instr);
-      if (t == exp) {
+      if (t == exp && this_bb->DELETE.find(t) == this_bb->DELETE.end()) {
         return (*it)->num;
       }
     }
-  }
+  //}
 
-  if (this_bb->parent_p.size() == 0)
+  if (this_bb->parent_p.size() == 0) {
     return -1;
+  }
 
   for(int i=0; i<bb.size(); i++) {
     if (this_bb == bb[i])
