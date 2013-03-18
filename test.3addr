@@ -1,28 +1,40 @@
     instr 1: nop
     instr 2: enter 8
-    instr 3: move 0 a#-8
-    instr 4: cmplt a#-8 70
-    instr 5: blbc (4) [12]
-    instr 6: cmplt a#-8 75
-    instr 7: blbc (6) [11]
+    instr 3: add b#24 c#16
+    instr 4: move (3) a#-8
+    instr 5: cmplt a#-8 100
+    instr 6: blbc (5) [36]
+    instr 7: add b#24 c#16
     instr 8: add b#24 c#16
-    instr 9: add a#-8 (8)
-    instr 10: move (9) a#-8
-    instr 11: br [4]
-    instr 12: add b#24 c#16
-    instr 13: add a#-8 (12)
-    instr 14: move (13) a#-8
-    instr 15: cmplt a#-8 150
-    instr 16: blbc (15) [23]
-    instr 17: cmplt a#-8 160
-    instr 18: blbc (17) [22]
-    instr 19: add b#24 c#16
-    instr 20: add a#-8 (19)
-    instr 21: move (20) a#-8
-    instr 22: br [15]
-    instr 23: write a#-8
-    instr 24: ret 16
-    instr 25: entrypc
-    instr 26: enter 0
-    instr 27: ret 0
-    instr 28: nop
+    instr 9: add (7) (8)
+    instr 10: add b#24 c#16
+    instr 11: add b#24 c#16
+    instr 12: add (10) (11)
+    instr 13: add (9) (12)
+    instr 14: add b#24 c#16
+    instr 15: add b#24 c#16
+    instr 16: add (14) (15)
+    instr 17: add b#24 c#16
+    instr 18: add b#24 c#16
+    instr 19: add (17) (18)
+    instr 20: add (16) (19)
+    instr 21: add (13) (20)
+    instr 22: move (21) a#-8
+    instr 23: cmplt a#-8 75
+    instr 24: blbc (23) [29]
+    instr 25: add b#24 c#16
+    instr 26: add a#-8 (25)
+    instr 27: move (26) a#-8
+    instr 28: br [32]
+    instr 29: add b#24 c#16
+    instr 30: sub a#-8 (29)
+    instr 31: move (30) a#-8
+    instr 32: write a#-8
+    instr 33: add a#-8 a#-8
+    instr 34: move (33) a#-8
+    instr 35: br [5]
+    instr 36: ret 16
+    instr 37: entrypc
+    instr 38: enter 0
+    instr 39: ret 0
+    instr 40: nop

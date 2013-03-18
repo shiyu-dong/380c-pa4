@@ -8,7 +8,7 @@ set<int> br_target;
 bool main_next = 0;
 
 string opcode[] = {"add", "mul", "cmpeq", "sub", "div", "mod", "cmple", "cmplt", "neg",
-                   "load", "store", "INVALID", "INVALID", "move", "write", "param", "br", "ret", "call", "blbc", "blbs", "nop"};
+                   "load", "store", "move", "write", "param", "INVALID", "INVALID", "br", "ret", "call", "blbc", "blbs", "nop"};
 
 
 //#define PRE_OPCODE_RANGE 9 //(3+5+1)
