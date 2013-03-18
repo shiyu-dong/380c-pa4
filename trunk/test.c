@@ -126,4 +126,42 @@ void loop_4(long b, long c)
 
 void main()
 {
+  //local_cse(99, 100);
+  //WriteLine();
+  if_0(3, 4, 10);
+  WriteLine();
+  //if_0(4, 3, 10);
+  //WriteLine();
+  //if_0(3, 4, 0);
+  //WriteLine();
+  //if_1(0, 7, 9, 2);
+  //WriteLine();
+  //if_1(0, 7, 9, 2);
+  //WriteLine();
+  //if_1(0, 9, 7, 2);
+  //WriteLine();
+  //if_1(0, 9, 7, 200);
+  //WriteLine();
+
+  //loop_0(5);
+  //WriteLine();
+  //loop_1(20);
+  //WriteLine();
+
+  //loop_3(1, 9);//a < 700, a > 75
+  //WriteLine();
+  //loop_3(1, 100);// a > 100
+  //WriteLine();
+  //loop_3(1, 8);//a < 100, a < 75
+  //WriteLine();
+
+  //loop_4(3, 4);//enter every branch
+  //WriteLine();
+  //loop_4(50, 25);//enter first while once, secnod while once, second if once
+  //WriteLine();
+  //loop_4(75, 80);//enter first while once, second while once, no second if
+  //WriteLine();
+  //loop_4(80, 80);//enter first while once, no second while
+  //WriteLine();
 }
+
