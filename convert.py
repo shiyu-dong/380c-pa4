@@ -113,7 +113,7 @@ for line in sys.stdin:
     continue
 
 #print label for next instruction
-  if sline[2] != 'enter' and sline[2] != 'entrypc' and int(sline[1]) < 62000:
+  if sline[2] != 'enter' and sline[2] != 'entrypc':
     print 'instr_' + sline[1] + ':;\n\t',
 
 #function start
@@ -173,6 +173,7 @@ for line in sys.stdin:
     if not sline[1] in targets:
         sys.stdout.write('long ')
         targets.append(sline[1])
+
 
     print 'r'+sline[1] + ' =',
     t = getOperand(3, sline, 0)
