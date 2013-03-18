@@ -426,13 +426,13 @@ void Function::compute_INSERT() {
   }
 
   //debug
-  for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
-      i != edge.end(); i++) {
-      cout << "INSERT edge: " << i->second->parent->num << " -> " <<
-        i->second->child->num << endl;
-      printSet(i->second->INSERT);
-  }
-  cout << endl;
+  //for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
+  //    i != edge.end(); i++) {
+  //    cout << "INSERT edge: " << i->second->parent->num << " -> " <<
+  //      i->second->child->num << endl;
+  //    printSet(i->second->INSERT);
+  //}
+  //cout << endl;
 }
 
 void Function::compute_DELETE() {
@@ -444,12 +444,12 @@ void Function::compute_DELETE() {
   }
 
   //debug
-  cout<<"DELETE func: "<<bb[0]->num<<"\n";
-  for(int i=0; i<bb.size(); i++) {
-    cout<<"BB num: "<<bb[i]->num<<endl;
-    printSet(bb[i]->DELETE);
-  }
-  cout << endl;
+  //cout<<"DELETE func: "<<bb[0]->num<<"\n";
+  //for(int i=0; i<bb.size(); i++) {
+  //  cout<<"BB num: "<<bb[i]->num<<endl;
+  //  printSet(bb[i]->DELETE);
+  //}
+  //cout << endl;
 }
 
 void Function::rewrite() {
@@ -595,7 +595,7 @@ void Function::rewrite() {
 
   //debug
   //cout<<"@@@"<<endl;
-  print_CFG();
+  //print_CFG();
   //cout<<"@@@"<<endl;
 
   // for each delete exp in each bb,
@@ -680,7 +680,6 @@ void Function::insert_new_bb(BasicBlock* this_bb, int parent_num, int child_num)
     vector<BasicBlock*>::iterator j = bb.begin();
     while(*j != child)
       j++;
-    j++;
     bb.insert(j, this_bb);
   }
   else {
