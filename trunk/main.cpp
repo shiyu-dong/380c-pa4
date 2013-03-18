@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
   // compute PRE
   if(!strcmp(argv[1], "-opt=pre")) {
     for(int i=0; i<functions.size(); i++) {
+      functions[i]->print_CFG();
       functions[i]->compute_UEE();
       functions[i]->compute_DEE();
       functions[i]->compute_base();
