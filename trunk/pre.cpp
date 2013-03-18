@@ -349,13 +349,13 @@ void Function::compute_EARLIEST() {
   }
 
   //debug
-  for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
-      i != edge.end(); i++) {
-      cout << "EARLIEST edge: " << i->second->parent->num << " -> " <<
-        i->second->child->num << endl;
-      printSet(i->second->EARLIEST);
-  }
-  cout << endl;
+  //for(map<pair<int, int>, Edge* >::iterator i = edge.begin();
+  //    i != edge.end(); i++) {
+  //    cout << "EARLIEST edge: " << i->second->parent->num << " -> " <<
+  //      i->second->child->num << endl;
+  //    printSet(i->second->EARLIEST);
+  //}
+  //cout << endl;
 }
 
 void Function::compute_LATER() {
@@ -486,7 +486,6 @@ void Function::rewrite() {
 
         // check if last instruction is a branch
         int last_instr = parent->instr.back()->opcode_num;
-        cout<<last_instr<<endl;
         if (last_instr == 16 || last_instr == 19 || last_instr == 20) {
           // if last instr is a branch,
           // need to insert it to second last pos
@@ -629,9 +628,9 @@ void Function::rewrite() {
   } // end of reconnect
 
   //debug
-  cout<<"@@@"<<endl;
+  //cout<<"@@@"<<endl;
   print_CFG();
-  cout<<"@@@"<<endl;
+  //cout<<"@@@"<<endl;
 
   // for each delete exp in each bb,
   // find cooresponding instruction
