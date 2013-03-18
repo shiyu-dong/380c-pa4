@@ -485,7 +485,8 @@ void Function::rewrite() {
         BasicBlock* parent = i->second->parent;
 
         // check if last instruction is a branch
-        int last_instr = parent->instr.back()->num;
+        int last_instr = parent->instr.back()->opcode_num;
+        cout<<last_instr<<endl;
         if (last_instr == 16 || last_instr == 19 || last_instr == 20) {
           // if last instr is a branch,
           // need to insert it to second last pos
@@ -629,8 +630,6 @@ void Function::rewrite() {
 
   //debug
   cout<<"@@@"<<endl;
-  print_instr();
-  cout<<"@@@"<<endl;
   print_CFG();
   cout<<"@@@"<<endl;
 
@@ -678,10 +677,25 @@ void Function::rewrite() {
 
 void Function::fix_up(BasicBlock*& this_bb, const Exp& exp, int ref_num, set<BasicBlock*>& visited) {
   visited.insert(this_bb);
+  int parent_index, this_index;
+
+  for(int i=0; i<bb.size(); i++) {
+    if (this_bb == bb[i]) {
+      this_index = i;
+    }
+  }
 
   for(set<BasicBlock*>::iterator it = this_bb->parent_p.begin();
       it != this_bb->parent_p.end(); it++) {
-    fix_up_helper(*it, exp, ref_num, visited);
+
+    for(int i=0; i<bb.size(); i++) {
+      if (*it == bb[i]) {
+        parent_index = i;
+      }
+    }
+
+    if (parent_index < this_index)
+      fix_up_helper(*it, exp, ref_num, visited);
   }
 }
 
@@ -718,7 +732,7 @@ void Function::fix_up_helper(BasicBlock* const& this_bb, const Exp& exp, int ref
       new_instr_num--;
 
       // insert the newly created instructions to the bottom of the bb
-      int last_instr = this_bb->instr.back()->num;
+      int last_instr = this_bb->instr.back()->opcode_num;
       // check if last instruction is a branch
       if (last_instr == 16 || last_instr == 19 || last_instr == 20) {
         // if last instr is a branch,
@@ -766,7 +780,7 @@ void Function::fix_up_helper(BasicBlock* const& this_bb, const Exp& exp, int ref
     new_instr_num--;
 
     // insert the newly created instructions to the bottom of the bb
-    int last_instr = this_bb->instr.back()->num;
+    int last_instr = this_bb->instr.back()->opcode_num;
     // check if last instruction is a branch
     if (last_instr == 16 || last_instr == 19 || last_instr == 20) {
       // if last instr is a branch,
@@ -795,9 +809,23 @@ void Function::fix_up_helper(BasicBlock* const& this_bb, const Exp& exp, int ref
     assert("fix_up reach start" && 0);
   }
   else {
+    int parent_index, this_index;
+    for(int ii = 0; ii<bb.size(); ii++) {
+      if (this_bb == bb[ii]) {
+        this_index = ii;
+      }
+    }
+
     for(set<BasicBlock*>::iterator it = this_bb->parent_p.begin();
         it != this_bb->parent_p.end(); it++) {
-      if (visited.find(*it) == visited.end()) {
+
+      for(int ii = 0; ii<bb.size(); ii++) {
+        if (*it == bb[ii]) {
+          parent_index = ii;
+        }
+      }
+
+      if (visited.find(*it) == visited.end() && parent_index < this_index) {
         fix_up_helper(*it, exp, ref_num, visited);
       }
     }
