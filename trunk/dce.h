@@ -175,6 +175,11 @@ struct Function {
   void compute_DELETE();
   void rewrite();
 
+  void insert_new_bb(BasicBlock*, int, int);
+
+  int find_up_exp(Exp, BasicBlock*);
+  int find_up_exp_helper(Exp, BasicBlock*);
+
   int find_ref(BasicBlock*&, const Exp&, set<BasicBlock*>&);
   int find_ref_helper(BasicBlock* const &, const Exp&, set<BasicBlock*>&);
 
